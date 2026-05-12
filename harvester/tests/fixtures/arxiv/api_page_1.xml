@@ -1,0 +1,425 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/xn611ryeCDnDvmVYOJ6SWZuh1qk</id>
+  <title>arXiv Query: search_query=cat:cs.AI&amp;id_list=&amp;start=0&amp;max_results=10</title>
+  <updated>2026-05-12T12:01:20Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=cat:cs.AI&amp;start=0&amp;max_results=10&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>10</opensearch:itemsPerPage>
+  <opensearch:totalResults>177211</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2605.10938v1</id>
+    <title>ELF: Embedded Language Flows</title>
+    <updated>2026-05-11T17:59:29Z</updated>
+    <link href="https://arxiv.org/abs/2605.10938v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.10938v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Diffusion and flow-based models have become the de facto approaches for generating continuous data, e.g., in domains such as images and videos. Their success has attracted growing interest in applying them to language modeling. Unlike their image-domain counterparts, today's leading diffusion language models (DLMs) primarily operate over discrete tokens. In this paper, we show that continuous DLMs can be made effective with minimal adaptation to the discrete domain. We propose Embedded Language Flows (ELF), a class of diffusion models in continuous embedding space based on continuous-time Flow Matching. Unlike existing DLMs, ELF predominantly stays within the continuous embedding space until the final time step, where it maps to discrete tokens using a shared-weight network. This formulation makes it straightforward to adapt established techniques from image-domain diffusion models, e.g., classifier-free guidance (CFG). Experiments show that ELF substantially outperforms leading discrete and continuous DLMs, achieving better generation quality with fewer sampling steps. These results suggest that ELF offers a promising path toward effective continuous DLMs.</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-11T17:59:29Z</published>
+    <arxiv:comment>Tech Report. Project webpage: https://github.com/lillian039/ELF</arxiv:comment>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Keya Hu</name>
+    </author>
+    <author>
+      <name>Linlu Qiu</name>
+    </author>
+    <author>
+      <name>Yiyang Lu</name>
+    </author>
+    <author>
+      <name>Hanhong Zhao</name>
+    </author>
+    <author>
+      <name>Tianhong Li</name>
+    </author>
+    <author>
+      <name>Yoon Kim</name>
+    </author>
+    <author>
+      <name>Jacob Andreas</name>
+    </author>
+    <author>
+      <name>Kaiming He</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.10934v1</id>
+    <title>Variational Inference for Lévy Process-Driven SDEs via Neural Tilting</title>
+    <updated>2026-05-11T17:58:45Z</updated>
+    <link href="https://arxiv.org/abs/2605.10934v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.10934v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Modelling extreme events and heavy-tailed phenomena is central to building reliable predictive systems in domains such as finance, climate science, and safety-critical AI. While Lévy processes provide a natural mathematical framework for capturing jumps and heavy tails, Bayesian inference for Lévy-driven stochastic differential equations (SDEs) remains intractable with existing methods: Monte Carlo approaches are rigorous but lack scalability, whereas neural variational inference methods are efficient but rely on Gaussian assumptions that fail to capture discontinuities. We address this tension by introducing a neural exponential tilting framework for variational inference in Lévy-driven SDEs. Our approach constructs a flexible variational family by exponentially reweighting the Lévy measure using neural networks. This parametrization preserves the jump structure of the underlying process while remaining computationally tractable. To enable efficient inference, we develop a quadratic neural parametrization that yields closed-form normalization of the tilted measure, a conditional Gaussian representation for stable processes that facilitates simulation, and symmetry-aware Monte Carlo estimators for scalable optimization. Empirically, we demonstrate that the method accurately captures jump dynamics and yields reliable posterior inference in regimes where Gaussian-based variational approaches fail, on both synthetic and real-world datasets.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CV" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.RO" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="stat.ML" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-11T17:58:45Z</published>
+    <arxiv:comment>The associated project page which contains the official implementation can be found in https://circle-group.github.io/research/NeuralTilting/</arxiv:comment>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Yaman Kindap</name>
+    </author>
+    <author>
+      <name>Manfred Opper</name>
+    </author>
+    <author>
+      <name>Benjamin Dupuis</name>
+    </author>
+    <author>
+      <name>Umut Simsekli</name>
+    </author>
+    <author>
+      <name>Tolga Birdal</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.10916v1</id>
+    <title>Confidence-Guided Diffusion Augmentation for Enhanced Bangla Compound Character Recognition</title>
+    <updated>2026-05-11T17:51:46Z</updated>
+    <link href="https://arxiv.org/abs/2605.10916v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.10916v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Recognition of handwritten Bangla compound characters remains a challenging problem due to complex character structures, large intra-class variation, and limited availability of high-quality annotated data. Existing Bangla handwritten character recognition systems often struggle to generalize across diverse writing styles, particularly for compound characters containing intricate ligatures and diacritical variations. In this work, we propose a confidence-guided diffusion augmentation framework for low-resolution Bangla compound character recognition. Our framework combines class-conditional diffusion modeling with classifier guidance to synthesize high-quality handwritten compound character samples. To further improve generation quality, we introduce Squeeze-and-Excitation enhanced residual blocks within the diffusion model's U-Net backbone. We additionally propose a confidence-based filtering mechanism where pre-trained classifiers act as quality gates to retain only highly class-consistent synthetic samples. The filtered synthetic images are fused with the original training data and used to retrain multiple classification architectures. Experiments conducted on the AIBangla compound character dataset demonstrate consistent performance improvements across ResNet50, DenseNet121, VGG16, and Vision Transformer architectures. Our best-performing model achieves 89.2\% classification accuracy, surpassing the previously published AIBangla benchmark by a substantial margin. The results demonstrate that quality-aware diffusion augmentation can effectively enhance handwritten character recognition performance in low-resource script domains.</summary>
+    <category term="cs.CV" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-11T17:51:46Z</published>
+    <arxiv:primary_category term="cs.CV"/>
+    <author>
+      <name>Md. Sultan Al Rayhan</name>
+    </author>
+    <author>
+      <name>Maheen Islam</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.10913v1</id>
+    <title>Shepherd: A Runtime Substrate Empowering Meta-Agents with a Formalized Execution Trace</title>
+    <updated>2026-05-11T17:50:51Z</updated>
+    <link href="https://arxiv.org/abs/2605.10913v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.10913v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>We introduce Shepherd, a functional programming model that formalizes meta-agent operations on target agents as functions, with core operations mechanized in Lean. Shepherd records every agent-environment interaction as a typed event in a Git-like execution trace, enabling any past state to be forked and replayed. The system forks the agent process and its filesystem $5\times$ faster than Docker, achieving $&gt;95\%$ prompt-cache reuse on replay. We demonstrate the model through three applications. First, in runtime intervention, a live supervisor increases pair coding pass rates from 28.8% to 54.7% on CooperBench. Second, in counterfactual meta-optimization, branching exploration outperforms baselines across four benchmarks by up to 11 points while reducing wall-clock time by up to 58%. Third, in Tree-RL training, forking rollouts at selected turns improves TerminalBench-2 performance from 34.2% to 39.4%. These results establish Shepherd as an efficient infrastructure for programming meta-agents. We open-source the system to support future research.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.PL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.SE" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-11T17:50:51Z</published>
+    <arxiv:comment>56 pages, 21 figures, 14 tables</arxiv:comment>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Simon Yu</name>
+    </author>
+    <author>
+      <name>Derek Chong</name>
+    </author>
+    <author>
+      <name>Ananjan Nandi</name>
+    </author>
+    <author>
+      <name>Dilara Soylu</name>
+    </author>
+    <author>
+      <name>Jiuding Sun</name>
+    </author>
+    <author>
+      <name>Christopher D Manning</name>
+    </author>
+    <author>
+      <name>Weiyan Shi</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.10907v1</id>
+    <title>Engineering Robustness into Personal Agents with the AI Workflow Store</title>
+    <updated>2026-05-11T17:46:33Z</updated>
+    <link href="https://arxiv.org/abs/2605.10907v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.10907v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The dominant paradigm for AI agents is an "on-the-fly" loop in which agents synthesize plans and execute actions within seconds or minutes in response to user prompts. We argue that this paradigm short-circuits disciplined software engineering (SE) processes -- iterative design, rigorous testing, adversarial evaluation, staged deployment, and more -- that have delivered the (relatively) reliable and secure systems we use today. By focusing on rapid, real-time synthesis, are AI agents effectively delivering users improvised prototypes rather than systems fit for high-stakes scenarios in which users may unwittingly apply them?
+  This paper argues for the need to integrate rigorous SE processes into the agentic loop to produce production-grade, hardened, and deterministically-constrained agent *workflows* that substantially outperform the potentially brittle and vulnerable results of on-the-fly synthesis. Doing so may require extra compute and time, and if so, we must amortize the cost of rigor through reuse across a broad user community. We envision an *AI Workflow Store* that consists of hardened and reusable workflows that agents can invoke with far greater reliability and security than improvised tool chains. We outline the research challenges of this vision, which stem from a broader flexibility-robustness tension that we argue requires moving beyond the ``on-the-fly'' paradigm to navigate effectively.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-11T17:46:33Z</published>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Roxana Geambasu</name>
+      <arxiv:affiliation>Google and Columbia University</arxiv:affiliation>
+    </author>
+    <author>
+      <name>Mariana Raykova</name>
+      <arxiv:affiliation>Google</arxiv:affiliation>
+    </author>
+    <author>
+      <name>Pierre Tholoniat</name>
+      <arxiv:affiliation>Google</arxiv:affiliation>
+    </author>
+    <author>
+      <name>Trishita Tiwari</name>
+      <arxiv:affiliation>Google</arxiv:affiliation>
+    </author>
+    <author>
+      <name>Lillian Tsai</name>
+      <arxiv:affiliation>Google</arxiv:affiliation>
+    </author>
+    <author>
+      <name>Wen Zhang</name>
+      <arxiv:affiliation>Google</arxiv:affiliation>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.10906v1</id>
+    <title>DataMaster: Towards Autonomous Data Engineering for Machine Learning</title>
+    <updated>2026-05-11T17:46:24Z</updated>
+    <link href="https://arxiv.org/abs/2605.10906v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.10906v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>As model families, training recipes, and compute budgets become increasingly standardized, further gains in machine learning systems depend increasingly on data. Yet data engineering remains largely manual and ad hoc: practitioners repeatedly search for external datasets, adapt them to existing pipelines, validate candidate data through downstream training, and carry forward lessons from prior attempts. We study task-conditioned autonomous data engineering, where an autonomous agent improves a fixed learning algorithm by optimizing only the data side, including external data discovery, data selection and composition, cleaning and transformation. The goal is to obtain a stronger downstream solution while leaving the learning algorithm unchanged. To address the open-ended search space, branch-dependent refinement, and delayed validation inherent in autonomous data engineering, we propose DataMaster, a data-agent framework that integrates tree-structured search, shared candidate data, and cumulative memory. DataMaster consists of three key components: a DataTree that organizes alternative data-engineering branches, a shared Data Pool that stores discovered external data sources for reuse, and a Global Memory that records node outcomes, artifacts, and reusable findings. Together, these components allow the agent to discover candidate data, construct executable training inputs, evaluate them through downstream feedback, and carry useful evidence across branches. We evaluate DataMaster on two types of benchmarks, MLE-Bench Lite and PostTrainBench. On MLE-Bench Lite, it improves medal rate by 32.27% over the initial score; on PostTrainBench, it surpasses the instruct model on GPQA (31.02% vs 30.35%).</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-11T17:46:24Z</published>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Yaxin Du</name>
+    </author>
+    <author>
+      <name>Xiyuan Yang</name>
+    </author>
+    <author>
+      <name>Zhifan Zhou</name>
+    </author>
+    <author>
+      <name>Wanxu Liu</name>
+    </author>
+    <author>
+      <name>Zixing Lei</name>
+    </author>
+    <author>
+      <name>Zimeng Chen</name>
+    </author>
+    <author>
+      <name>Fenyi Liu</name>
+    </author>
+    <author>
+      <name>Haotian Wu</name>
+    </author>
+    <author>
+      <name>Yuzhu Cai</name>
+    </author>
+    <author>
+      <name>Zexi Liu</name>
+    </author>
+    <author>
+      <name>Xinyu Zhu</name>
+    </author>
+    <author>
+      <name>WenHao Wang</name>
+    </author>
+    <author>
+      <name>Linfeng Zhang</name>
+    </author>
+    <author>
+      <name>Chen Qian</name>
+    </author>
+    <author>
+      <name>Siheng Chen</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.10889v1</id>
+    <title>Unmasking On-Policy Distillation: Where It Helps, Where It Hurts, and Why</title>
+    <updated>2026-05-11T17:33:28Z</updated>
+    <link href="https://arxiv.org/abs/2605.10889v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.10889v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>On-policy distillation offers dense, per-token supervision for training reasoning models; however, it remains unclear under which conditions this signal is beneficial and under which it is detrimental. Which teacher model should be used, and in the case of self-distillation, which specific context should serve as the supervisory signal? Does the optimal choice vary from one token to the next? At present, addressing these questions typically requires costly training runs whose aggregate performance metrics obscure the dynamics at the level of individual tokens. We introduce a training-free diagnostic framework that operates at the highest resolution: per token, per question, and per teacher. We derive an ideal per-node gradient defined as the parameter update that maximally increases the student's probability of success. We then develop a scalable targeted-rollout algorithm to estimate this gradient efficiently, even for long chains of intermediate thoughts. The gradient alignment score, defined as the cosine similarity between this ideal gradient and any given distillation gradient, quantifies the extent to which a particular configuration approximates the ideal signal. Across a range of self-distillation settings and external teacher models, we observe that distillation guidance exhibits substantially higher alignment with the ideal on incorrect rollouts than on correct ones, where the student already performs well and the teacher's signal tends to become noisy. Furthermore, we find that the optimal distillation context depends jointly on the student model's capacity and the target task, and that no single universally effective configuration emerges. These findings motivate the use of per-task, per-token diagnostic analyses for distillation.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-11T17:33:28Z</published>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Mohammadreza Armandpour</name>
+    </author>
+    <author>
+      <name>Fatih Ilhan</name>
+    </author>
+    <author>
+      <name>David Harrison</name>
+    </author>
+    <author>
+      <name>Ajay Jaiswal</name>
+    </author>
+    <author>
+      <name>Duc N. M Hoang</name>
+    </author>
+    <author>
+      <name>Fartash Faghri</name>
+    </author>
+    <author>
+      <name>Yizhe Zhang</name>
+    </author>
+    <author>
+      <name>Minsik Cho</name>
+    </author>
+    <author>
+      <name>Mehrdad Farajtabar</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.10888v1</id>
+    <title>Shields to Guarantee Probabilistic Safety in MDPs</title>
+    <updated>2026-05-11T17:33:01Z</updated>
+    <link href="https://arxiv.org/abs/2605.10888v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.10888v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Shielding is a prominent model-based technique to ensure safety of autonomous agents. Classical shielding aims to ensure that nothing bad ever happens and comes with strong guarantees about safety and maximal permissiveness. However, shielding systems for probabilistic safety, where something bad is allowed to happen with an acceptable probability, has proven to be more intricate. This paper presents a formal framework that conservatively extends classical shields to probabilistic safety. In this framework, we (i) demonstrate the impossibility of preserving the strong guarantees on safety and permissiveness, (ii) provide natural shields with weaker guarantees, and (iii) introduce offline and online shield constructions ensuring strong safety guarantees. The empirical evaluation highlights the practical advantages of the new shields, as well as their computational feasibility.</summary>
+    <category term="cs.LO" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-11T17:33:01Z</published>
+    <arxiv:comment>Accepted to CAV 2026</arxiv:comment>
+    <arxiv:primary_category term="cs.LO"/>
+    <author>
+      <name>Linus Heck</name>
+    </author>
+    <author>
+      <name>Filip Macák</name>
+    </author>
+    <author>
+      <name>Roman Andriushchenko</name>
+    </author>
+    <author>
+      <name>Milan Češka</name>
+    </author>
+    <author>
+      <name>Sebastian Junges</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.10886v1</id>
+    <title>LoKA: Low-precision Kernel Applications for Recommendation Models At Scale</title>
+    <updated>2026-05-11T17:32:29Z</updated>
+    <link href="https://arxiv.org/abs/2605.10886v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.10886v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Recent GPU generations deliver significantly higher FLOPs using lower-precision arithmetic, such as FP8. While successfully applied to large language models (LLMs), its adoption in large recommendation models (LRMs) has been limited. This is because LRMs are numerically sensitive, dominated by small matrix multiplications (GEMMs) followed by normalization, and trained in communication-intensive environments. Applying FP8 directly to LRMs often degrades model quality and prolongs training time. These challenges are inherent to LRM workloads and cannot be resolved merely by introducing better FP8 kernels. Instead, a system-model co-design approach is needed to successfully integrate FP8. We present LoKA (Low-precision Kernel Applications), a framework that makes FP8 practical for LRMs through three principles: profile under realistic distributions to know where low precision is safe, co-design model components with hardware to expand where it is safe, and orchestrate across kernel libraries to maximize the gains. Concretely, LoKA Probe is a statistically grounded, online benchmarking method that learns activation and weight statistics, and quantifies per-layer errors. This process pinpoints safe and unsafe, fast and slow sites for FP8 adoption. LoKA Mods is a set of reusable model adaptations that improve both numerical stability and execution efficiency with FP8. LoKA Dispatch is a runtime that leverages the statistical insights from LoKA Probe to select the fastest FP8 kernel that satisfies the accuracy requirements.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-11T17:32:29Z</published>
+    <arxiv:comment>Accepted to ISCA'26</arxiv:comment>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Liang Luo</name>
+    </author>
+    <author>
+      <name>Yinbin Ma</name>
+    </author>
+    <author>
+      <name>Quanyu Zhu</name>
+    </author>
+    <author>
+      <name>Vasiliy Kuznetsov</name>
+    </author>
+    <author>
+      <name>Yuxin Chen</name>
+    </author>
+    <author>
+      <name>Jian Jiao</name>
+    </author>
+    <author>
+      <name>Jiecao Yu</name>
+    </author>
+    <author>
+      <name>Buyun Zhang</name>
+    </author>
+    <author>
+      <name>Tongyi Tang</name>
+    </author>
+    <author>
+      <name>Xiaohan Wei</name>
+    </author>
+    <author>
+      <name>Yanli Zhao</name>
+    </author>
+    <author>
+      <name>Zeliang Chen</name>
+    </author>
+    <author>
+      <name>Yuchen Hao</name>
+    </author>
+    <author>
+      <name>Venkatesh Ranganathan</name>
+    </author>
+    <author>
+      <name>Sandeep Parab</name>
+    </author>
+    <author>
+      <name>Yantao Yao</name>
+    </author>
+    <author>
+      <name>Maxim Naumov</name>
+    </author>
+    <author>
+      <name>Chunzhi Yang</name>
+    </author>
+    <author>
+      <name>Shen Li</name>
+    </author>
+    <author>
+      <name>Ellie Wen</name>
+    </author>
+    <author>
+      <name>Wenlin Chen</name>
+    </author>
+    <author>
+      <name>Santanu Kolay</name>
+    </author>
+    <author>
+      <name>Chunqiang Tang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2605.10876v1</id>
+    <title>AssayBench: An Assay-Level Virtual Cell Benchmark for LLMs and Agents</title>
+    <updated>2026-05-11T17:27:16Z</updated>
+    <link href="https://arxiv.org/abs/2605.10876v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2605.10876v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Recent advances in machine learning and large-scale biological data collections have revived the prospect of building a virtual cell, a computational model of cellular behavior that could accelerate biological discovery. One of the most compelling promises of this vision is the ability to perform in silico phenotypic screens, in which a model predicts the effects of cellular perturbations in unseen biological contexts. This task combines heterogeneous textual inputs with diverse phenotypic outputs, making it particularly well-suited to LLMs and agentic systems. Yet, no standard benchmark currently exists for this task, as existing efforts focus on narrower molecular readouts that are only indirectly aligned with the phenotypic endpoints driving many real-world drug discovery workflows. In this work, we present AssayBench, a benchmark for phenotypic screen prediction, built from 1,920 publicly available CRISPR screens spanning five broad classes of cellular phenotypes. We formulate the screen prediction task as a gene rank prediction for each screen and introduce the adjusted nDCG, a continuous metric for comparing performance across heterogeneous assays. Our extensive evaluation shows that existing methods remain far from empirically estimated performance ceilings and zero-shot generalist LLMs outperform biology-specific LLMs and trainable baselines. Optimization techniques such as fine-tuning, ensembling, and prompt optimization can further improve LLM performance on this task. Overall, AssayBench offers a practical testbed for measuring progress toward in silico phenotypic screening and, more broadly, virtual cell models.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="q-bio.QM" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-05-11T17:27:16Z</published>
+    <arxiv:comment>22 pages</arxiv:comment>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Edward De Brouwer</name>
+    </author>
+    <author>
+      <name>Carl Edwards</name>
+    </author>
+    <author>
+      <name>Alexander Wu</name>
+    </author>
+    <author>
+      <name>Jenna Collier</name>
+    </author>
+    <author>
+      <name>Graham Heimberg</name>
+    </author>
+    <author>
+      <name>Xiner Li</name>
+    </author>
+    <author>
+      <name>Meena Subramaniam</name>
+    </author>
+    <author>
+      <name>Ehsan Hajiramezanali</name>
+    </author>
+    <author>
+      <name>David Richmond</name>
+    </author>
+    <author>
+      <name>Jan-Christian Hütter</name>
+    </author>
+    <author>
+      <name>Sara Mostafavi</name>
+    </author>
+    <author>
+      <name>Gabriele Scalia</name>
+    </author>
+  </entry>
+</feed>

@@ -32,3 +32,49 @@ federal_register:
     - "PRORULE"
     - "NOTICE"
     - "PRESDOCU"
+
+arxiv:
+  fetcher: harvester.fetchers.arxiv.ArxivFetcher
+  etl: harvester.etl.arxiv.ArxivETL
+  rolling_window_days: 30
+  inbox_backpressure_max: 5000
+  daily_cost_ceiling_usd: 5.00
+  expected_schema_version: 5
+  triage_enabled: true
+  triage_threshold: 0.4
+  triage_model: "claude-sonnet-4-6"
+  scout_base_url: "https://arxiv.org"
+  categories:
+    # Core AI / ML categories
+    - "cs.AI"
+    - "cs.LG"
+    - "cs.CL"
+    - "stat.ML"
+    # Economics measurement
+    - "econ.GN"
+    - "econ.EM"
+    # Control / dynamics
+    - "math.OC"
+    - "stat.AP"
+  # Tier-1 keywords folded in from ~/.wintermute/sources/paper_keywords.yaml
+  tier_1_terms:
+    - "knowledge graph agent"
+    - "agent memory architecture"
+    - "RAG retrieval augmented generation"
+    - "entity extraction named entity recognition"
+    - "research reproducibility provenance"
+    - "survey methodology federal statistics"
+    - "MCP model context protocol tool use"
+    - "meta-learning few-shot"
+    - "graph neural network knowledge base"
+    - "multi-agent coordination planning"
+    - "document understanding information extraction"
+    - "research pipeline automation"
+    - "entity resolution record linkage"
+    - "knowledge graph deduplication entity alignment"
+    - "confidence threshold entity matching"
+    - "TAC-KBP knowledge base population"
+    - "OAEI ontology alignment evaluation"
+    - "knowledge graph completion link prediction"
+    - "belief revision knowledge base update AGM"
+  tier_2_terms: []

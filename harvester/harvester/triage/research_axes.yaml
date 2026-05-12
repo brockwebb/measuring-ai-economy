@@ -1,0 +1,144 @@
+# Harvester triage rubric — copy migrated from ~/.wintermute/sources/research_axes.yaml.
+# The harvester package owns this file from this point; subsequent edits go here.
+# The ~/.wintermute/sources/research_axes.yaml file remains for non-harvester callers
+# (e.g., legacy drain_pdf_inbox.py) until they're sunsetted in their own follow-up.
+#
+
+# Wintermute — Research Axes
+#
+# Canonical axis registry. Used by triage (drain_pdf_inbox.py) and acquisition.
+# Score documents per-axis (0.0-1.0); the headline triage_score is the max
+# across axes (sometimes adjusted by operational-fit gate).
+#
+# Keep this aligned with CLAUDE.md. When axes change, bump rubric_version and
+# trigger re-evaluation of past rejections.
+
+rubric_version: "0.3.0"
+
+axes:
+  stochastic_dynamics_info_geometry:
+    description: >
+      Stochastic dynamics + information geometry + generative models. Latent
+      geometry, info theory, SDEs/Fokker-Planck, UQ + ensembling, optimization
+      (incl. Wasserstein DRO / supply chain), generative + numerics, model
+      accuracy + calibration + harm.
+    keywords:
+      - stochastic differential equation
+      - Fokker-Planck
+      - information geometry
+      - diffusion model
+      - uncertainty quantification
+      - Wasserstein
+      - distributionally robust optimization
+      - model calibration
+      - mode connectivity
+      - latent geometry
+    weight: 1.0
+
+  canine_cognition_behavior:
+    description: >
+      Canine cognition, behavior, training. Murray-related — dog learning,
+      ethology, working-dog selection.
+    keywords:
+      - canine cognition
+      - dog behavior
+      - dog training
+      - working dog
+      - canine learning
+      - operant conditioning
+      - ethology
+    weight: 0.9
+
+  martial_arts:
+    description: >
+      MMA, BJJ, boxing, conditioning. Includes biomechanics, strategy,
+      pedagogy. Combat sports specifically — not generic self-defense content.
+    keywords:
+      - mixed martial arts
+      - brazilian jiu-jitsu
+      - boxing
+      - grappling
+      - combat sport
+      - striking biomechanics
+    weight: 0.9
+
+  exercise_training_science:
+    description: >
+      Strength, hypertrophy, mobility, conditioning. Loaded carries,
+      kettlebell work, periodization. Prefer peer-reviewed primary literature
+      over coaching content.
+    keywords:
+      - strength training
+      - hypertrophy
+      - resistance training
+      - kettlebell
+      - loaded carry
+      - periodization
+      - sarcopenia
+      - athletic conditioning
+    weight: 0.9
+
+  mental_training_performance_psychology:
+    description: >
+      Resilience, mindset, flow, grit, selection psychology, performance
+      under pressure.
+    keywords:
+      - psychological hardiness
+      - grit
+      - flow state
+      - selection psychology
+      - performance under pressure
+      - resilience
+      - mental toughness
+    weight: 0.9
+
+  complexity_computation_control:
+    description: >
+      Complexity, computation, control systems, symbolic AI. Shannon, Gödel,
+      Turing, latent-space math, PID, GOFAI, classical reasoning.
+    keywords:
+      - information theory
+      - computability
+      - control theory
+      - PID controller
+      - symbolic AI
+      - GOFAI
+      - logic and reasoning
+      - automata
+    weight: 0.95
+
+# Operational meta — documents that materially change how Wintermute itself
+# runs. Concrete techniques we'd implement score HIGH (0.6-0.8). Speculative
+# comparisons and reverse-engineering of tools we use directly score LOW.
+operational_meta:
+  description: >
+    Tooling/methodology applicable to Wintermute's own pipeline. Score HIGH
+    (0.6-0.8) when the doc presents a SPECIFIC technique we could adopt —
+    GraphRAG retrieval patterns, ontology extraction methods, TEVV loops for
+    multi-agent security, entity resolution algorithms, calibration methodology,
+    agent isolation patterns. Score LOW (0.05-0.25) when the doc is a
+    speculative survey of alternatives we won't switch to, or a reverse-
+    engineering of tools we already run directly.
+  weight_cap: 0.80
+  examples_keep:
+    - "GraphRAG retrieval techniques (we run a graph layer)"
+    - "Ontology extraction methods (we extract entities into Neo4j)"
+    - "Multi-agent security frameworks / TEVV evaluation (Wintermute is a MAS)"
+    - "Agent lifecycle / workspace isolation patterns"
+    - "Entity resolution / record linkage / dedup methodology"
+  examples_drop:
+    - "Comparison of agent frameworks we don't use (LangGraph, CrewAI, AutoGen)"
+    - "Reverse-engineering a tool we already use directly (Claude Code internals)"
+    - "Generic 'how to be a better PM with AI' content"
+    - "Survey articles with no recommended action"
+
+# Negative examples — actual rejected documents from state/REJECTIONS.jsonl.
+# Triage prompt should see these as few-shot negatives. Refresh as new
+# rejections accumulate.
+negative_examples:
+  - title: "I Compared 6 Python AI Agent Frameworks (LangGraph vs CrewAI vs PydanticAI vs OpenAI SDK vs Smolagents vs Google ADK)"
+    why_rejected: "Speculative tooling comparison. Wintermute runs on Claude Code + claudeclaw and is not switching to any of these. Mentions 'multi-agent systems' and 'tool use' but offers nothing operational."
+    score: 0.05
+  - title: "Building Claude Code with Harness Engineering (Fareed Khan)"
+    why_rejected: "Third-party reverse-engineering of a tool used daily. First-party material covers the same surface. Mostly screenshots — low unique-signal density."
+    score: 0.20

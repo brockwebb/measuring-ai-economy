@@ -8,6 +8,7 @@ import json
 import os
 from datetime import date, timedelta
 from pathlib import Path
+from typing import Any
 
 import typer
 import yaml
@@ -200,6 +201,12 @@ def run(
         inbox_dir=_staging_dir(),
         inbox_backpressure_max=int(cfg.get("inbox_backpressure_max", 5000)),
         expected_schema_version=int(cfg.get("expected_schema_version", 2)),
+        scout_base_url=cfg.get("scout_base_url"),
+        triage_enabled=bool(cfg.get("triage_enabled", False)),
+        triage_model=str(cfg.get("triage_model", "claude-sonnet-4-6")),
+        triage_axes_yaml=(Path(__file__).parent / "triage" / "research_axes.yaml")
+            if cfg.get("triage_enabled") else None,
+        triage_threshold=float(cfg.get("triage_threshold", 0.4)),
     )
 
     archive = RawArchive(root=config.archive_root, manifest_path=config.manifest_path)
@@ -209,16 +216,25 @@ def run(
     runner = Runner(config=config, fetcher=fetcher, etl=etl)
 
     total = 0
-    for term in terms:
-        q = {
-            "term": term,
-            "type": cfg.get("document_types", []),
-            "publication_date_gte": pub_gte,
-            "publication_date_lte": pub_lte,
+    for term in (terms or [None]):
+        q: dict[str, Any] = {
             "per_page": 100,
             "max_pages": 10,
         }
-        typer.echo(f"--- running {source} for term: {term!r}")
+        if source == "federal_register":
+            q.update({
+                "term": term,
+                "type": cfg.get("document_types", []),
+                "publication_date_gte": pub_gte,
+                "publication_date_lte": pub_lte,
+            })
+        else:
+            if cats := cfg.get("categories"):
+                q["categories"] = cats
+            if term:
+                q["keyword"] = term
+        label = repr(term) if term else "(no-keyword)"
+        typer.echo(f"--- running {source} for term: {label}")
         result = runner.run(q)
         typer.echo(
             f"run_id={result.run_id} status={result.status} "
@@ -282,6 +298,56 @@ def validate(source: str = typer.Argument(...)) -> None:
         cwd=Path(__file__).parent.parent,
     )
     raise typer.Exit(r.returncode)
+
+
+@app.command("compare-sources")
+def compare_sources(
+    old: str = typer.Argument(..., help="Legacy source_id (e.g., 'arxiv_search_papers')"),
+    new: str = typer.Argument(..., help="New source_id (e.g., 'arxiv')"),
+    days: int = typer.Option(3, "--days", help="Window in days back from now"),
+) -> None:
+    """Compare staged-doc volume + overlap between two source_ids.
+
+    Used during the Phase 2 (and future migration) verification windows where
+    the legacy script and the new harvester fetcher both run in parallel.
+    """
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                WITH
+                  old_urls AS (
+                    SELECT source_url FROM harvest.document_metadata
+                    WHERE source_id = %s AND created_at > now() - make_interval(days => %s)
+                  ),
+                  new_urls AS (
+                    SELECT source_url FROM harvest.document_metadata
+                    WHERE source_id = %s AND created_at > now() - make_interval(days => %s)
+                  )
+                SELECT
+                  (SELECT count(*) FROM old_urls) AS old_count,
+                  (SELECT count(*) FROM new_urls) AS new_count,
+                  (SELECT count(*) FROM old_urls o JOIN new_urls n USING (source_url)) AS both_count,
+                  (SELECT count(*) FROM old_urls WHERE source_url NOT IN (SELECT source_url FROM new_urls)) AS only_old,
+                  (SELECT count(*) FROM new_urls WHERE source_url NOT IN (SELECT source_url FROM old_urls)) AS only_new
+                """,
+                (old, days, new, days),
+            )
+            row = cur.fetchone()
+            old_n, new_n, both, only_old, only_new = row
+
+        typer.echo(f"=== compare-sources over last {days} days ===")
+        typer.echo(f"  old: {old} → {old_n} docs")
+        typer.echo(f"  new: {new} → {new_n} docs")
+        typer.echo(f"  both: {both} (overlap)")
+        typer.echo(f"  only-in-old: {only_old}")
+        typer.echo(f"  only-in-new: {only_new}")
+        if old_n > 0:
+            coverage = both / old_n
+            typer.echo(f"  new-vs-old coverage: {coverage:.1%}  (target ≥95% for cutover)")
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":
