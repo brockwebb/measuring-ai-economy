@@ -36,7 +36,7 @@ def test_runner_writes_run_log_completed_on_success(clean_run_state, tmp_path):
     )
 
     class FakeFetcher:
-        def iter_payloads(self, query):
+        def iter_payloads(self, query, *, seen=None):
             return iter([])
 
     class FakeETL:

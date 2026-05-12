@@ -103,10 +103,15 @@ class Runner:
         self.fetcher.archive = archive
         loader = Loader(conn)
 
+        # Build seen-URL set once per run so the fetcher can skip already-known
+        # items BEFORE writing raw bytes. Saves disk + bandwidth on dedup-skipped
+        # items. The runner still re-checks below as defense-in-depth.
+        seen_urls = self._seen_urls_for_source(conn)
+
         fetched = 0
         deposited = 0
         failed = 0
-        for payload in self.fetcher.iter_payloads(query):
+        for payload in self.fetcher.iter_payloads(query, seen=seen_urls):
             fetched += 1
             try:
                 if self._already_seen(conn, payload.source_url):
@@ -219,6 +224,21 @@ class Runner:
                 (item_id,),
             )
             return cur.fetchone() is not None
+
+    def _seen_urls_for_source(self, conn: psycopg.Connection) -> set[str]:
+        """Return the set of source_urls already deposited for this source.
+
+        Built once at run start and passed into the fetcher so it can skip
+        raw-archive writes for known URLs. The runner still re-checks
+        per-payload as defense-in-depth.
+        """
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT item_id FROM harvest.fetched_items "
+                "WHERE source_id = %s AND status = 'deposited'",
+                (self.config.source_id,),
+            )
+            return {row[0] for row in cur.fetchall()}
 
     def _record_fetched_item(
         self,

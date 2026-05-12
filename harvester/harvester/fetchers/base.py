@@ -34,14 +34,24 @@ class Fetcher(ABC):
         """Return the rate limit policy for this fetcher."""
 
     @abstractmethod
-    def iter_payloads(self, query: dict[str, Any]) -> Iterable[RawPayload]:
+    def iter_payloads(
+        self,
+        query: dict[str, Any],
+        *,
+        seen: set[str] | None = None,
+    ) -> Iterable[RawPayload]:
         """Yield RawPayload objects for items matching the query.
 
         Implementation contract:
           - Respect rate_limit_spec() via self._pace()
+          - For each candidate item, check `seen` (set of source_urls already
+            in harvest.fetched_items) BEFORE writing raw bytes — skip if present.
           - Write raw bytes via self.archive.write() — that returns the RawPayload
-          - Do NOT check fetched_items; that's the runner's job
           - May raise on unrecoverable errors; the runner records them in run_log
+
+        The runner still re-checks fetched_items as defense-in-depth, but the
+        seen-set lets the fetcher skip raw-archive writes for already-known
+        URLs (avoiding wasted disk + bandwidth on dedup-skipped items).
         """
 
     def _pace(self) -> None:

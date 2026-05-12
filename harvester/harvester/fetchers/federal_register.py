@@ -34,8 +34,15 @@ class FederalRegisterFetcher(Fetcher):
             backoff_seconds=[2, 5, 15, 60],
         )
 
-    def iter_payloads(self, query: dict[str, Any]) -> Iterable[RawPayload]:
-        """Yield one RawPayload per document matching the query.
+    def iter_payloads(
+        self,
+        query: dict[str, Any],
+        *,
+        seen: set[str] | None = None,
+    ) -> Iterable[RawPayload]:
+        """Yield one RawPayload per NEW document matching the query.
+
+        Already-seen source_urls are skipped before writing raw bytes.
 
         Query shape (matches FR API conditions):
             {
@@ -49,6 +56,7 @@ class FederalRegisterFetcher(Fetcher):
         """
         per_page = int(query.get("per_page", _DEFAULT_PER_PAGE))
         max_pages = int(query.get("max_pages", 10))
+        seen = seen or set()
 
         with httpx.Client(headers={"User-Agent": _USER_AGENT}, timeout=30) as client:
             for page in range(1, max_pages + 1):
@@ -62,10 +70,13 @@ class FederalRegisterFetcher(Fetcher):
                     break
 
                 for result in results:
+                    source_url = result.get("html_url") or result.get("pdf_url") or ""
+                    if source_url and source_url in seen:
+                        continue
                     payload_bytes = json.dumps(result, sort_keys=True).encode("utf-8")
                     yield self.archive.write(
                         source_id=self.source_id,
-                        source_url=result.get("html_url") or result.get("pdf_url") or "",
+                        source_url=source_url,
                         request_params={**params, "result_index": result.get("document_number")},
                         content=payload_bytes,
                         content_type="application/json",
