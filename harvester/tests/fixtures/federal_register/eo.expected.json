@@ -1,0 +1,59 @@
+{
+  "metadata": {
+    "agencies": [
+      "EXECUTIVE OFFICE OF THE PRESIDENT"
+    ],
+    "document_number": "2026-08010",
+    "document_type": "Presidential Document"
+  },
+  "published_date": "2026-04-23",
+  "rows": [
+    {
+      "data": {
+        "authors": "[]",
+        "document_type": "Presidential Document",
+        "doi": null,
+        "payload": "{\"agencies\": [\"EXECUTIVE OFFICE OF THE PRESIDENT\"], \"citation\": null, \"document_number\": \"2026-08010\"}",
+        "published_date": "2026-04-23",
+        "raw_hash": "sha256:test",
+        "source_id": "federal_register",
+        "source_url": "https://www.federalregister.gov/documents/2026/04/23/2026-08010/presidential-determination-pursuant-to-section-303-of-the-defense-production-act-of-1950-as-amended",
+        "title": "Presidential Determination Pursuant to Section 303 of the Defense Production Act of 1950, as Amended, on Coal Supply Chains and Baseload Power Generation Capacity"
+      },
+      "target_table": "harvest.document_metadata"
+    },
+    {
+      "data": {
+        "abstract": null,
+        "agencies": [
+          "EXECUTIVE OFFICE OF THE PRESIDENT"
+        ],
+        "agency_ids": [
+          538
+        ],
+        "body_html_url": null,
+        "body_text": null,
+        "cfr_references": "[]",
+        "citation": null,
+        "docket_ids": [],
+        "document_number": "2026-08010",
+        "document_type": "Presidential Document",
+        "effective_date": null,
+        "executive_order_number": null,
+        "full_text_xml_url": null,
+        "html_url": "https://www.federalregister.gov/documents/2026/04/23/2026-08010/presidential-determination-pursuant-to-section-303-of-the-defense-production-act-of-1950-as-amended",
+        "page_length": null,
+        "pdf_url": "https://www.govinfo.gov/content/pkg/FR-2026-04-23/pdf/2026-08010.pdf",
+        "presidential_document_type": null,
+        "publication_date": "2026-04-23",
+        "raw_hash": "sha256:test",
+        "regulations_dot_gov_url": null,
+        "signing_date": null,
+        "title": "Presidential Determination Pursuant to Section 303 of the Defense Production Act of 1950, as Amended, on Coal Supply Chains and Baseload Power Generation Capacity"
+      },
+      "target_table": "harvest.federal_register_documents"
+    }
+  ],
+  "source_url": "https://www.federalregister.gov/documents/2026/04/23/2026-08010/presidential-determination-pursuant-to-section-303-of-the-defense-production-act-of-1950-as-amended",
+  "title": "Presidential Determination Pursuant to Section 303 of the Defense Production Act of 1950, as Amended, on Coal Supply Chains and Baseload Power Generation Capacity"
+}
