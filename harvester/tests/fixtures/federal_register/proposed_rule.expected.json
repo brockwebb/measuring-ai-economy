@@ -1,0 +1,59 @@
+{
+  "metadata": {
+    "agencies": [
+      "SECURITIES AND EXCHANGE COMMISSION"
+    ],
+    "document_number": "2026-09095",
+    "document_type": "Proposed Rule"
+  },
+  "published_date": "2026-05-07",
+  "rows": [
+    {
+      "data": {
+        "authors": "[]",
+        "document_type": "Proposed Rule",
+        "doi": null,
+        "payload": "{\"agencies\": [\"SECURITIES AND EXCHANGE COMMISSION\"], \"citation\": null, \"document_number\": \"2026-09095\"}",
+        "published_date": "2026-05-07",
+        "raw_hash": "sha256:test",
+        "source_id": "federal_register",
+        "source_url": "https://www.federalregister.gov/documents/2026/05/07/2026-09095/semiannual-reporting",
+        "title": "Semiannual Reporting"
+      },
+      "target_table": "harvest.document_metadata"
+    },
+    {
+      "data": {
+        "abstract": "The Securities and Exchange Commission (\"Commission\") is proposing amendments to allow companies to file semiannual reports on new Form 10-S in lieu of quarterly reports on Form 10-Q to meet their interim reporting obligations under the Securities Exchange Act of 1934 (\"Exchange Act\"). The Commission is also proposing changes to the financial statement requirements of Regulation S-X to facilitate semiannual reporting and to simplify rules regarding the age of financial statements.",
+        "agencies": [
+          "SECURITIES AND EXCHANGE COMMISSION"
+        ],
+        "agency_ids": [
+          466
+        ],
+        "body_html_url": null,
+        "body_text": null,
+        "cfr_references": "[]",
+        "citation": null,
+        "docket_ids": [],
+        "document_number": "2026-09095",
+        "document_type": "Proposed Rule",
+        "effective_date": null,
+        "executive_order_number": null,
+        "full_text_xml_url": null,
+        "html_url": "https://www.federalregister.gov/documents/2026/05/07/2026-09095/semiannual-reporting",
+        "page_length": null,
+        "pdf_url": "https://www.govinfo.gov/content/pkg/FR-2026-05-07/pdf/2026-09095.pdf",
+        "presidential_document_type": null,
+        "publication_date": "2026-05-07",
+        "raw_hash": "sha256:test",
+        "regulations_dot_gov_url": null,
+        "signing_date": null,
+        "title": "Semiannual Reporting"
+      },
+      "target_table": "harvest.federal_register_documents"
+    }
+  ],
+  "source_url": "https://www.federalregister.gov/documents/2026/05/07/2026-09095/semiannual-reporting",
+  "title": "Semiannual Reporting"
+}

@@ -1,0 +1,22 @@
+{
+  "title": "Semiannual Reporting",
+  "type": "Proposed Rule",
+  "abstract": "The Securities and Exchange Commission (\"Commission\") is proposing amendments to allow companies to file semiannual reports on new Form 10-S in lieu of quarterly reports on Form 10-Q to meet their interim reporting obligations under the Securities Exchange Act of 1934 (\"Exchange Act\"). The Commission is also proposing changes to the financial statement requirements of Regulation S-X to facilitate semiannual reporting and to simplify rules regarding the age of financial statements.",
+  "document_number": "2026-09095",
+  "html_url": "https://www.federalregister.gov/documents/2026/05/07/2026-09095/semiannual-reporting",
+  "pdf_url": "https://www.govinfo.gov/content/pkg/FR-2026-05-07/pdf/2026-09095.pdf",
+  "public_inspection_pdf_url": "https://public-inspection.federalregister.gov/2026-09095.pdf?1778071532",
+  "publication_date": "2026-05-07",
+  "agencies": [
+    {
+      "raw_name": "SECURITIES AND EXCHANGE COMMISSION",
+      "name": "Securities and Exchange Commission",
+      "id": 466,
+      "url": "https://www.federalregister.gov/agencies/securities-and-exchange-commission",
+      "json_url": "https://www.federalregister.gov/api/v1/agencies/466",
+      "parent_id": null,
+      "slug": "securities-and-exchange-commission"
+    }
+  ],
+  "excerpts": "reduced information asymmetry,\n 297 \n \n greater stock price reflectiveness of public disclosures,\n 298 \n \n enhanced market competition,\n 299 \n \n increased liquidity,\n 300 \n \n decreased cost of capital,\n 301 \n \n more accurate financial analysis,\n 302 \n \n enhanced <span class=\"match\">artificial</span> <span class=\"match\">intelligence</span> capabilities,\n 303 \n \n and others.\n 304 \n \n To the extent the magnitude of these effects varies with the frequency of XBRL data availability, these benefits may be reduced as a whole given the lack of quarterly XBRL-tagged financial data from semiannual and hybrid"
+}

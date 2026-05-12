@@ -1,0 +1,59 @@
+{
+  "metadata": {
+    "agencies": [
+      "DEPARTMENT OF HEALTH AND HUMAN SERVICES"
+    ],
+    "document_number": "2026-09266",
+    "document_type": "Rule"
+  },
+  "published_date": "2026-05-11",
+  "rows": [
+    {
+      "data": {
+        "authors": "[]",
+        "document_type": "Rule",
+        "doi": null,
+        "payload": "{\"agencies\": [\"DEPARTMENT OF HEALTH AND HUMAN SERVICES\"], \"citation\": null, \"document_number\": \"2026-09266\"}",
+        "published_date": "2026-05-11",
+        "raw_hash": "sha256:test",
+        "source_id": "federal_register",
+        "source_url": "https://www.federalregister.gov/documents/2026/05/11/2026-09266/extension-of-compliance-dates-for-nondiscrimination-on-the-basis-of-disability-accessibility-of-web",
+        "title": "Extension of Compliance Dates for Nondiscrimination on the Basis of Disability; Accessibility of Web Content and Mobile Applications of Recipients of Departmental Financial Assistance"
+      },
+      "target_table": "harvest.document_metadata"
+    },
+    {
+      "data": {
+        "abstract": "By this interim final rule (\"IFR\"), the Department of Health and Human Services (\"Department\") is revising the Department's regulations implementing section 504 of the Rehabilitation Act (\"section 504\") to extend the compliance dates for the requirements for web content and mobile application (\"app\") accessibility that were adopted on May 9, 2024. The compliance date for recipients with fifteen (15) or more employees is extended from May 11, 2026, to May 11, 2027. The compliance date for recipients with fewer than fifteen (15) employees is extended from May 10, 2027, to May 10, 2028.",
+        "agencies": [
+          "DEPARTMENT OF HEALTH AND HUMAN SERVICES"
+        ],
+        "agency_ids": [
+          221
+        ],
+        "body_html_url": null,
+        "body_text": null,
+        "cfr_references": "[]",
+        "citation": null,
+        "docket_ids": [],
+        "document_number": "2026-09266",
+        "document_type": "Rule",
+        "effective_date": null,
+        "executive_order_number": null,
+        "full_text_xml_url": null,
+        "html_url": "https://www.federalregister.gov/documents/2026/05/11/2026-09266/extension-of-compliance-dates-for-nondiscrimination-on-the-basis-of-disability-accessibility-of-web",
+        "page_length": null,
+        "pdf_url": "https://www.govinfo.gov/content/pkg/FR-2026-05-11/pdf/2026-09266.pdf",
+        "presidential_document_type": null,
+        "publication_date": "2026-05-11",
+        "raw_hash": "sha256:test",
+        "regulations_dot_gov_url": null,
+        "signing_date": null,
+        "title": "Extension of Compliance Dates for Nondiscrimination on the Basis of Disability; Accessibility of Web Content and Mobile Applications of Recipients of Departmental Financial Assistance"
+      },
+      "target_table": "harvest.federal_register_documents"
+    }
+  ],
+  "source_url": "https://www.federalregister.gov/documents/2026/05/11/2026-09266/extension-of-compliance-dates-for-nondiscrimination-on-the-basis-of-disability-accessibility-of-web",
+  "title": "Extension of Compliance Dates for Nondiscrimination on the Basis of Disability; Accessibility of Web Content and Mobile Applications of Recipients of Departmental Financial Assistance"
+}
