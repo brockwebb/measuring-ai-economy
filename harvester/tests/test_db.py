@@ -1,5 +1,3 @@
-import pytest
-import psycopg
 from harvester.db import get_connection, with_advisory_lock
 
 
