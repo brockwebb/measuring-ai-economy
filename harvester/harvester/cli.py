@@ -300,5 +300,55 @@ def validate(source: str = typer.Argument(...)) -> None:
     raise typer.Exit(r.returncode)
 
 
+@app.command("compare-sources")
+def compare_sources(
+    old: str = typer.Argument(..., help="Legacy source_id (e.g., 'arxiv_search_papers')"),
+    new: str = typer.Argument(..., help="New source_id (e.g., 'arxiv')"),
+    days: int = typer.Option(3, "--days", help="Window in days back from now"),
+) -> None:
+    """Compare staged-doc volume + overlap between two source_ids.
+
+    Used during the Phase 2 (and future migration) verification windows where
+    the legacy script and the new harvester fetcher both run in parallel.
+    """
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                WITH
+                  old_urls AS (
+                    SELECT source_url FROM harvest.document_metadata
+                    WHERE source_id = %s AND created_at > now() - make_interval(days => %s)
+                  ),
+                  new_urls AS (
+                    SELECT source_url FROM harvest.document_metadata
+                    WHERE source_id = %s AND created_at > now() - make_interval(days => %s)
+                  )
+                SELECT
+                  (SELECT count(*) FROM old_urls) AS old_count,
+                  (SELECT count(*) FROM new_urls) AS new_count,
+                  (SELECT count(*) FROM old_urls o JOIN new_urls n USING (source_url)) AS both_count,
+                  (SELECT count(*) FROM old_urls WHERE source_url NOT IN (SELECT source_url FROM new_urls)) AS only_old,
+                  (SELECT count(*) FROM new_urls WHERE source_url NOT IN (SELECT source_url FROM old_urls)) AS only_new
+                """,
+                (old, days, new, days),
+            )
+            row = cur.fetchone()
+            old_n, new_n, both, only_old, only_new = row
+
+        typer.echo(f"=== compare-sources over last {days} days ===")
+        typer.echo(f"  old: {old} → {old_n} docs")
+        typer.echo(f"  new: {new} → {new_n} docs")
+        typer.echo(f"  both: {both} (overlap)")
+        typer.echo(f"  only-in-old: {only_old}")
+        typer.echo(f"  only-in-new: {only_new}")
+        if old_n > 0:
+            coverage = both / old_n
+            typer.echo(f"  new-vs-old coverage: {coverage:.1%}  (target ≥95% for cutover)")
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     app()
