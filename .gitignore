@@ -1,0 +1,91 @@
+# macOS
+.DS_Store
+._*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+build/
+dist/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+MANIFEST
+
+# Virtualenvs / package managers
+.venv/
+venv/
+env/
+ENV/
+.python-version
+.uv-cache/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Linting / typing
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Secrets / env
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+credentials.json
+service-account*.json
+
+# Logs
+logs/
+*.log
+
+# Harvester raw data archive (large, immutable, indexed by manifest)
+data/raw/
+
+# Manifest backups
+data/manifests/*.bak
+data/manifests/*.tmp
+
+# Local databases (postgres is canonical)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Build artifacts
+node_modules/
+*.tsbuildinfo
