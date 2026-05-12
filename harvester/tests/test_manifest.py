@@ -1,6 +1,5 @@
 """Tests for the raw archive + parquet manifest."""
 
-from pathlib import Path
 import pyarrow.parquet as pq
 
 from harvester.manifest import RawArchive

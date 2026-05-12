@@ -1,9 +1,7 @@
 """Tests for Crawl4aiFetcher base (with crawl4ai mocked)."""
 
-from pathlib import Path
 from unittest.mock import patch, MagicMock, AsyncMock
 
-import pytest
 
 from harvester.fetchers.crawl4ai_base import Crawl4aiFetcher
 from harvester.manifest import RawArchive

@@ -5,7 +5,6 @@ interfaces and Phase 3+ adds real fetchers. Subclasses without implementations
 raise NotImplementedError when iter_payloads is called.
 """
 
-from pathlib import Path
 
 import pytest
 
