@@ -350,5 +350,34 @@ def compare_sources(
         conn.close()
 
 
+@app.command("check-saturation")
+def check_saturation_cmd() -> None:
+    """Check all sources' deposit_ratio against saturation thresholds. Email alerts."""
+    from harvester.improvement.saturation import SaturationMonitor
+    from harvester.improvement.notify import send_alert
+
+    conn = get_connection()
+    try:
+        alerts = SaturationMonitor(conn).check_alerts()
+        if not alerts:
+            typer.echo("No saturation alerts. All sources within healthy ratios.")
+            return
+
+        body_lines = []
+        for a in alerts:
+            line = f"[{a.severity.upper()}] {a.message}"
+            typer.echo(line)
+            body_lines.append(line)
+
+        if any(a.severity == "alert" for a in alerts):
+            send_alert(
+                subject=f"[harvester] {sum(1 for a in alerts if a.severity == 'alert')} saturation alert(s)",
+                body="\n".join(body_lines),
+            )
+            raise typer.Exit(code=1)
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     app()
