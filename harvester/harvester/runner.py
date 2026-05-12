@@ -22,6 +22,7 @@ from harvester.improvement.co_occurrence import (
     CoOccurrenceLedger,
     find_other_source_for_url,
 )
+from harvester.improvement.failure_patterns import FailureClassifier
 from harvester.loader import Loader
 from harvester.manifest import RawArchive
 from harvester.normalizer import emit_markdown
@@ -103,6 +104,12 @@ class Runner:
 
             with with_advisory_lock(conn, self.config.source_id):
                 result = self._drive(conn, run_id, query)
+
+            # Phase 3.1: classify failures from this run
+            try:
+                FailureClassifier(conn).classify_run(run_id)
+            except Exception:
+                pass  # classifier failures don't affect run completion
 
             self._close_run_log(
                 conn,
