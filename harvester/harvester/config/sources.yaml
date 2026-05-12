@@ -78,3 +78,24 @@ arxiv:
     - "knowledge graph completion link prediction"
     - "belief revision knowledge base update AGM"
   tier_2_terms: []
+
+semantic_scholar:
+  fetcher: harvester.fetchers.semantic_scholar.SemanticScholarFetcher
+  etl: harvester.etl.semantic_scholar.SemanticScholarETL
+  rolling_window_days: 365   # search broad
+  inbox_backpressure_max: 5000
+  expected_schema_version: 6
+  triage_enabled: true
+  triage_threshold: 0.4
+  triage_model: "claude-sonnet-4-6"
+  scout_base_url: "https://api.semanticscholar.org"
+  citation_chain_enabled: false   # Standalone runs don't enqueue further citations
+  tier_1_terms:
+    - "knowledge graph agent"
+    - "agent memory architecture"
+    - "entity resolution"
+    - "research reproducibility provenance"
+    - "survey methodology federal statistics"
+    - "diffusion model latent geometry"
+    - "Wasserstein distributionally robust optimization"
+  tier_2_terms: []
