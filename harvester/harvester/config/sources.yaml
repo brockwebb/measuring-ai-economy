@@ -1,0 +1,31 @@
+# Source configuration for the harvester.
+# Each entry maps a source_id to fetcher metadata, ETL identifier, default
+# query, and runtime tunables.
+
+federal_register:
+  fetcher: harvester.fetchers.federal_register.FederalRegisterFetcher
+  etl: harvester.etl.federal_register.FederalRegisterETL
+  rolling_window_days: 60
+  inbox_backpressure_max: 500
+  daily_cost_ceiling_usd: 0.00
+  tier_1_terms:
+    - "artificial intelligence"
+    - "machine learning"
+    - "generative AI"
+    - "automated decision"
+    - "algorithmic"
+    - "AI risk management"
+    - "AI safety"
+    - "foundation model"
+  tier_2_terms:
+    - "Executive Order 14110"
+    - "Executive Order 14179"
+    - "OMB M-24-10"
+    - "NIST AI"
+    - "AI governance"
+    - "automated systems"
+  document_types:
+    - "RULE"
+    - "PRORULE"
+    - "NOTICE"
+    - "PRESDOCU"
