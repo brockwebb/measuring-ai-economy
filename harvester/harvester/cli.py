@@ -64,8 +64,16 @@ def _data_root() -> Path:
     return Path(__file__).parent.parent.parent / "data"
 
 
-def _inbox_dir() -> Path:
-    return Path(os.environ.get("WINTERMUTE_INBOX", str(Path.home() / ".wintermute" / "inbox")))
+def _staging_dir() -> Path:
+    """Drop dir for normalized markdown — staging/YYYY-MM/.
+
+    The harvester's output already has full YAML frontmatter (source_type,
+    captured_at, raw_hash, pg_refs, ...) — that's staging format, not inbox
+    format. Wintermute's existing inbox→staging drain only handles PDFs, so
+    routing through inbox would be a no-op. Drop directly into staging.
+    """
+    base = Path(os.environ.get("WINTERMUTE_STAGING", str(Path.home() / ".wintermute" / "staging")))
+    return base / date.today().strftime("%Y-%m")
 
 
 @app.command()
@@ -128,8 +136,8 @@ def run(
         source_id=source,
         archive_root=archive_root,
         manifest_path=manifest_path,
-        inbox_dir=_inbox_dir(),
-        inbox_backpressure_max=int(cfg.get("inbox_backpressure_max", 500)),
+        inbox_dir=_staging_dir(),
+        inbox_backpressure_max=int(cfg.get("inbox_backpressure_max", 5000)),
         expected_schema_version=int(cfg.get("expected_schema_version", 2)),
     )
 
@@ -181,12 +189,12 @@ def status() -> None:
         for source_id, rid, started, st, f, d, fa in rows:
             typer.echo(f"  [{started:%Y-%m-%d %H:%M}] {source_id} run_id={rid} {st} f={f} d={d} fail={fa}")
 
-        typer.echo("\n=== Inbox depth ===")
-        inbox = _inbox_dir()
-        if inbox.exists():
-            typer.echo(f"  {inbox}: {sum(1 for _ in inbox.iterdir())} files")
+        typer.echo("\n=== Staging depth (this month) ===")
+        staging = _staging_dir()
+        if staging.exists():
+            typer.echo(f"  {staging}: {sum(1 for _ in staging.iterdir())} files")
         else:
-            typer.echo(f"  {inbox}: (missing)")
+            typer.echo(f"  {staging}: (missing)")
 
         typer.echo("\n=== Errors last 24h ===")
         with conn.cursor() as cur:
