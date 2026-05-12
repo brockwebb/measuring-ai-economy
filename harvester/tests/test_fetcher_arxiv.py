@@ -3,7 +3,6 @@
 import re
 from pathlib import Path
 
-import pytest
 
 from harvester.fetchers.arxiv import ArxivFetcher
 from harvester.manifest import RawArchive
