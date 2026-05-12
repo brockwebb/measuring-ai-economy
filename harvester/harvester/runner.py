@@ -21,6 +21,8 @@ from harvester.discovery.scout import MuiScout
 from harvester.loader import Loader
 from harvester.manifest import RawArchive
 from harvester.normalizer import emit_markdown
+from harvester.triage.llm_triage import LlmTriage
+from harvester.types import ParsedDoc
 
 
 @dataclass
@@ -32,6 +34,10 @@ class RunnerConfig:
     inbox_backpressure_max: int
     expected_schema_version: int
     scout_base_url: str | None = None
+    triage_enabled: bool = False
+    triage_model: str = "claude-sonnet-4-6"
+    triage_axes_yaml: Path | None = None
+    triage_threshold: float = 0.4
 
 
 @dataclass
@@ -66,6 +72,12 @@ class Runner:
         self.etl = etl
         self._scout = MuiScout()
         self.scout_base_url: str | None = config.scout_base_url
+        self.triage: LlmTriage | None = None
+        if config.triage_enabled and config.triage_axes_yaml is not None:
+            self.triage = LlmTriage(
+                model_id=config.triage_model,
+                axes_yaml=config.triage_axes_yaml,
+            )
 
     def run(self, query: dict[str, Any]) -> RunResult:
         conn = get_connection()
@@ -126,6 +138,16 @@ class Runner:
                 parsed = self.etl.parse(payload)
                 rows = list(self.etl.to_rows(parsed))
                 loader.load(rows, run_id=run_id)
+                if self.triage is not None:
+                    try:
+                        tr = self.triage.score(parsed)
+                        self._record_triage_result(conn, parsed, tr)
+                        parsed.metadata["triage_score"] = tr.score
+                        parsed.metadata["triage_reason"] = tr.reason
+                        if tr.score < self.config.triage_threshold:
+                            parsed.metadata["triage_below_threshold"] = True
+                    except Exception as e:
+                        parsed.metadata["triage_error"] = str(e)
                 inbox_path = emit_markdown(
                     parsed,
                     inbox_dir=self.config.inbox_dir,
@@ -289,6 +311,40 @@ class Runner:
                 (self.config.source_id,),
             )
             return {row[0] for row in cur.fetchall()}
+
+    def _record_triage_result(self, conn: psycopg.Connection, parsed: ParsedDoc, tr) -> None:
+        """Persist a TriageResult to harvest.triage_results."""
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT doc_id FROM harvest.document_metadata
+                WHERE source_id = %s AND source_url = %s
+                ORDER BY doc_id DESC LIMIT 1
+                """,
+                (self.config.source_id, parsed.source_url),
+            )
+            row = cur.fetchone()
+            if not row:
+                return
+            doc_id = row[0]
+            cur.execute(
+                """
+                INSERT INTO harvest.triage_results
+                    (doc_id, score, axes, reason, rubric_version, model_id, prompt_hash)
+                VALUES (%s, %s, %s::jsonb, %s, %s, %s, %s)
+                ON CONFLICT (doc_id) DO UPDATE
+                SET score = EXCLUDED.score,
+                    axes = EXCLUDED.axes,
+                    reason = EXCLUDED.reason,
+                    rubric_version = EXCLUDED.rubric_version,
+                    model_id = EXCLUDED.model_id,
+                    prompt_hash = EXCLUDED.prompt_hash,
+                    scored_at = now()
+                """,
+                (doc_id, tr.score, json.dumps(tr.axes), tr.reason,
+                 tr.rubric_version, tr.model_id, tr.prompt_hash),
+            )
+        conn.commit()
 
     def _record_fetched_item(
         self,
