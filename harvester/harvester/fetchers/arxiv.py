@@ -127,8 +127,8 @@ class ArxivFetcher(Fetcher):
             "updated": entry.get("updated"),
             "authors": [a.get("name") for a in entry.get("authors", []) if a.get("name")],
             "tags": [t.get("term") for t in entry.get("tags", []) if t.get("term")],
-            "links": [{"rel": l.get("rel"), "href": l.get("href"), "type": l.get("type")}
-                      for l in entry.get("links", [])],
+            "links": [{"rel": link.get("rel"), "href": link.get("href"), "type": link.get("type")}
+                      for link in entry.get("links", [])],
             "arxiv_primary_category": entry.get("arxiv_primary_category", {}).get("term")
                 if isinstance(entry.get("arxiv_primary_category"), dict) else None,
             "arxiv_doi": entry.get("arxiv_doi"),

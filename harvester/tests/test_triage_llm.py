@@ -26,6 +26,27 @@ def _make_parsed(title="Test paper on diffusion models",
 
 
 @patch("harvester.triage.llm_triage.subprocess.run")
+def test_triage_parses_claude_envelope_result_as_string(mock_run):
+    """Production claude CLI emits {"type":"result", "result":"<JSON STRING>"}.
+    We must unwrap that and parse the inner JSON."""
+    inner = json.dumps({
+        "score": 0.81,
+        "axes": {"stochastic_dynamics_info_geometry": 0.81},
+        "reason": "Inner reason.",
+    })
+    mock_run.return_value = MagicMock(
+        returncode=0,
+        stdout=json.dumps({"type": "result", "result": inner}),
+        stderr="",
+    )
+    triage = LlmTriage(model_id="claude-sonnet-4-6", axes_yaml=AXES_PATH)
+    result = triage.score(_make_parsed())
+    assert result.score == 0.81
+    assert result.axes["stochastic_dynamics_info_geometry"] == 0.81
+    assert "inner reason" in result.reason.lower()
+
+
+@patch("harvester.triage.llm_triage.subprocess.run")
 def test_triage_parses_claude_response(mock_run):
     mock_run.return_value = MagicMock(
         returncode=0,

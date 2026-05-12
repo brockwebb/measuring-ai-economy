@@ -147,6 +147,7 @@ class Runner:
                         if tr.score < self.config.triage_threshold:
                             parsed.metadata["triage_below_threshold"] = True
                     except Exception as e:
+                        conn.rollback()  # clear any aborted txn from a failed _record_triage_result
                         parsed.metadata["triage_error"] = str(e)
                 inbox_path = emit_markdown(
                     parsed,
