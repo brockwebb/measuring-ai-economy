@@ -8,6 +8,7 @@ import json
 import os
 from datetime import date, timedelta
 from pathlib import Path
+from typing import Any
 
 import typer
 import yaml
@@ -200,6 +201,12 @@ def run(
         inbox_dir=_staging_dir(),
         inbox_backpressure_max=int(cfg.get("inbox_backpressure_max", 5000)),
         expected_schema_version=int(cfg.get("expected_schema_version", 2)),
+        scout_base_url=cfg.get("scout_base_url"),
+        triage_enabled=bool(cfg.get("triage_enabled", False)),
+        triage_model=str(cfg.get("triage_model", "claude-sonnet-4-6")),
+        triage_axes_yaml=(Path(__file__).parent / "triage" / "research_axes.yaml")
+            if cfg.get("triage_enabled") else None,
+        triage_threshold=float(cfg.get("triage_threshold", 0.4)),
     )
 
     archive = RawArchive(root=config.archive_root, manifest_path=config.manifest_path)
@@ -209,16 +216,25 @@ def run(
     runner = Runner(config=config, fetcher=fetcher, etl=etl)
 
     total = 0
-    for term in terms:
-        q = {
-            "term": term,
-            "type": cfg.get("document_types", []),
-            "publication_date_gte": pub_gte,
-            "publication_date_lte": pub_lte,
+    for term in (terms or [None]):
+        q: dict[str, Any] = {
             "per_page": 100,
             "max_pages": 10,
         }
-        typer.echo(f"--- running {source} for term: {term!r}")
+        if source == "federal_register":
+            q.update({
+                "term": term,
+                "type": cfg.get("document_types", []),
+                "publication_date_gte": pub_gte,
+                "publication_date_lte": pub_lte,
+            })
+        else:
+            if cats := cfg.get("categories"):
+                q["categories"] = cats
+            if term:
+                q["keyword"] = term
+        label = repr(term) if term else "(no-keyword)"
+        typer.echo(f"--- running {source} for term: {label}")
         result = runner.run(q)
         typer.echo(
             f"run_id={result.run_id} status={result.status} "
