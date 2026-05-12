@@ -1,0 +1,12 @@
+# Example Corp
+
+> Example Corp builds widgets for the modern internet.
+
+## Docs
+
+- [Getting Started](https://example.com/docs/start): How to install and run.
+- [API Reference](https://example.com/docs/api): Full endpoint reference.
+
+## Optional
+
+- [Blog](https://example.com/blog): Engineering posts.
