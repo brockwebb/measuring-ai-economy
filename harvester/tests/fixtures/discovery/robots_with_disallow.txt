@@ -1,0 +1,11 @@
+User-agent: GPTBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: *
+Disallow: /admin/
+Disallow: /private/
+Allow: /
+Crawl-delay: 10

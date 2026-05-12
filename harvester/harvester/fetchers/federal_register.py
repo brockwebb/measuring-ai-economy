@@ -3,7 +3,6 @@
 API: https://www.federalregister.gov/developers/documentation/api/v1
 Auth: none.
 Rate limit: undocumented; we pace at 1 req/sec to be polite.
-Pagination: ?page=N, max 1000 per page.
 """
 
 from __future__ import annotations
@@ -11,20 +10,11 @@ from __future__ import annotations
 import json
 from typing import Any, Iterable
 
-import httpx
-
-from harvester.fetchers.base import Fetcher
-from harvester.types import RateLimit, RawPayload
+from harvester.fetchers.http_api import HttpApiFetcher
+from harvester.types import RateLimit
 
 
-_BASE_URL = "https://www.federalregister.gov/api/v1/documents.json"
-_DEFAULT_PER_PAGE = 100
-_USER_AGENT = "WintermuteHarvester/0.1 (research; brockwebb45@gmail.com)"
-
-
-class FederalRegisterFetcher(Fetcher):
-    """Fetches documents from federalregister.gov."""
-
+class FederalRegisterFetcher(HttpApiFetcher):
     source_id = "federal_register"
 
     def rate_limit_spec(self) -> RateLimit:
@@ -34,60 +24,11 @@ class FederalRegisterFetcher(Fetcher):
             backoff_seconds=[2, 5, 15, 60],
         )
 
-    def iter_payloads(
-        self,
-        query: dict[str, Any],
-        *,
-        seen: set[str] | None = None,
-    ) -> Iterable[RawPayload]:
-        """Yield one RawPayload per NEW document matching the query.
+    def base_url(self) -> str:
+        return "https://www.federalregister.gov/api/v1/documents.json"
 
-        Already-seen source_urls are skipped before writing raw bytes.
-
-        Query shape (matches FR API conditions):
-            {
-                "term": "artificial intelligence",
-                "type": ["RULE", "PRORULE", "NOTICE", "PRESDOCU"],
-                "publication_date_gte": "2026-03-01",
-                "publication_date_lte": "2026-05-11",
-                "per_page": 100,
-                "max_pages": 5,
-            }
-        """
-        per_page = int(query.get("per_page", _DEFAULT_PER_PAGE))
-        max_pages = int(query.get("max_pages", 10))
-        seen = seen or set()
-
-        with httpx.Client(headers={"User-Agent": _USER_AGENT}, timeout=30) as client:
-            for page in range(1, max_pages + 1):
-                self._pace()
-                params = self._build_params(query, page=page, per_page=per_page)
-                resp = client.get(_BASE_URL, params=params)
-                resp.raise_for_status()
-                body = resp.json()
-                results = body.get("results", [])
-                if not results:
-                    break
-
-                for result in results:
-                    source_url = result.get("html_url") or result.get("pdf_url") or ""
-                    if source_url and source_url in seen:
-                        continue
-                    payload_bytes = json.dumps(result, sort_keys=True).encode("utf-8")
-                    yield self.archive.write(
-                        source_id=self.source_id,
-                        source_url=source_url,
-                        request_params={**params, "result_index": result.get("document_number")},
-                        content=payload_bytes,
-                        content_type="application/json",
-                    )
-
-                # If this page wasn't full, we've reached the end.
-                if len(results) < per_page:
-                    break
-
-    @staticmethod
-    def _build_params(query: dict[str, Any], *, page: int, per_page: int) -> dict[str, Any]:
+    def build_params(self, query: dict[str, Any], *, page: int) -> dict[str, Any]:
+        per_page = int(query.get("per_page", 100))
         params: dict[str, Any] = {
             "per_page": per_page,
             "page": page,
@@ -102,3 +43,14 @@ class FederalRegisterFetcher(Fetcher):
         if "publication_date_lte" in query:
             params["conditions[publication_date][lte]"] = query["publication_date_lte"]
         return params
+
+    def extract_items(self, body: dict[str, Any]) -> Iterable[dict[str, Any]]:
+        return body.get("results", [])
+
+    def item_to_payload_kwargs(self, item: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "source_url": item.get("html_url") or item.get("pdf_url") or "",
+            "content_type": "application/json",
+            "content_bytes": json.dumps(item, sort_keys=True).encode("utf-8"),
+            "item_index": item.get("document_number"),
+        }

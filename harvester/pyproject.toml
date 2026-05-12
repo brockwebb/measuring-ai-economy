@@ -12,6 +12,8 @@ dependencies = [
     "pyyaml>=6.0",
     "neo4j>=5.20",
     "tenacity>=8.5",
+    "feedparser>=6.0",
+    "beautifulsoup4>=4.12",
 ]
 
 [project.scripts]
@@ -23,6 +25,9 @@ dev = [
     "pytest-httpx>=0.30",
     "ruff>=0.5",
     "mypy>=1.10",
+]
+html = [
+    "crawl4ai>=0.4",
 ]
 
 [build-system]

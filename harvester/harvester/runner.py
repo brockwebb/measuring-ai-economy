@@ -17,6 +17,7 @@ from typing import Any
 import psycopg
 
 from harvester.db import get_connection, with_advisory_lock
+from harvester.discovery.scout import MuiScout
 from harvester.loader import Loader
 from harvester.manifest import RawArchive
 from harvester.normalizer import emit_markdown
@@ -30,6 +31,7 @@ class RunnerConfig:
     inbox_dir: Path
     inbox_backpressure_max: int
     expected_schema_version: int
+    scout_base_url: str | None = None
 
 
 @dataclass
@@ -62,6 +64,8 @@ class Runner:
         self.config = config
         self.fetcher = fetcher
         self.etl = etl
+        self._scout = MuiScout()
+        self.scout_base_url: str | None = config.scout_base_url
 
     def run(self, query: dict[str, Any]) -> RunResult:
         conn = get_connection()
@@ -77,6 +81,9 @@ class Runner:
                 return RunResult(run_id=run_id, status="cancelled", error="backpressure")
 
             self._assert_schema_version(conn)
+
+            if self.scout_base_url and not self._has_recent_discovery_notes(conn):
+                self._scout_and_persist(conn)
 
             with with_advisory_lock(conn, self.config.source_id):
                 result = self._drive(conn, run_id, query)
@@ -214,6 +221,49 @@ class Runner:
                 WHERE id = %s
                 """,
                 (status, items_fetched, items_deposited, items_failed, error, run_id),
+            )
+        conn.commit()
+
+    def _has_recent_discovery_notes(self, conn: psycopg.Connection) -> bool:
+        """Return True if data_sources has a row for this source with last_scouted_at
+        in the last 90 days."""
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT last_scouted_at
+                FROM harvest.data_sources
+                WHERE source_id = %s AND last_scouted_at > now() - interval '90 days'
+                """,
+                (self.config.source_id,),
+            )
+            return cur.fetchone() is not None
+
+    def _scout_and_persist(self, conn: psycopg.Connection) -> None:
+        """Probe MUI affordances and persist to data_sources."""
+        if not self.scout_base_url:
+            return
+        notes = self._scout.probe(self.scout_base_url)
+        notes_json = json.dumps({
+            "base_url": notes.base_url,
+            "probed_at": notes.probed_at.isoformat(),
+            "llms_txt": notes.llms_txt,
+            "robots_rules": notes.robots_rules,
+            "sitemap_urls": notes.sitemap_urls,
+            "openapi_spec": notes.openapi_spec,
+            "rss_feeds": notes.rss_feeds,
+            "schema_org_types": notes.schema_org_types,
+            "probe_errors": notes.probe_errors,
+        })
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO harvest.data_sources (source_id, name, discovery_notes, last_scouted_at)
+                VALUES (%s, %s, %s::jsonb, now())
+                ON CONFLICT (source_id) DO UPDATE
+                SET discovery_notes = EXCLUDED.discovery_notes,
+                    last_scouted_at = EXCLUDED.last_scouted_at
+                """,
+                (self.config.source_id, self.config.source_id, notes_json),
             )
         conn.commit()
 

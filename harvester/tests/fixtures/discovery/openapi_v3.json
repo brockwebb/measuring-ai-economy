@@ -1,0 +1,26 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Example API",
+    "version": "1.0.0",
+    "description": "A sample API for testing."
+  },
+  "servers": [
+    {"url": "https://api.example.com/v1"}
+  ],
+  "paths": {
+    "/documents": {
+      "get": {
+        "summary": "List documents",
+        "parameters": [
+          {"name": "q", "in": "query", "schema": {"type": "string"}}
+        ]
+      }
+    },
+    "/documents/{id}": {
+      "get": {
+        "summary": "Get a document"
+      }
+    }
+  }
+}

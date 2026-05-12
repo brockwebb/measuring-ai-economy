@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib
+import json
 import os
 from datetime import date, timedelta
 from pathlib import Path
@@ -12,6 +13,7 @@ import typer
 import yaml
 
 from harvester.db import get_connection
+from harvester.discovery.scout import MuiScout
 from harvester.manifest import RawArchive
 from harvester.runner import Runner, RunnerConfig
 
@@ -94,6 +96,65 @@ def migrate() -> None:
                 cur.execute(sql)
             conn.commit()
         typer.echo(f"Applied {len(pending)} migration(s).")
+    finally:
+        conn.close()
+
+
+@app.command()
+def scout(
+    source: str = typer.Argument(..., help="Source id, e.g., 'federal_register'"),
+    base_url: str = typer.Option(..., "--base-url", help="Base URL to probe"),
+    force: bool = typer.Option(False, "--force", help="Re-probe even if recent notes exist"),
+) -> None:
+    """Probe a source's MUI affordances and persist to data_sources.discovery_notes."""
+    conn = get_connection()
+    try:
+        if not force:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT last_scouted_at FROM harvest.data_sources
+                    WHERE source_id = %s AND last_scouted_at > now() - interval '90 days'
+                    """,
+                    (source,),
+                )
+                if cur.fetchone():
+                    typer.echo(f"{source} already scouted recently. Use --force to re-probe.")
+                    return
+
+        scout_obj = MuiScout()
+        typer.echo(f"Probing {base_url} ...")
+        notes = scout_obj.probe(base_url)
+        notes_json = json.dumps({
+            "base_url": notes.base_url,
+            "probed_at": notes.probed_at.isoformat(),
+            "llms_txt": notes.llms_txt,
+            "robots_rules": notes.robots_rules,
+            "sitemap_urls": notes.sitemap_urls,
+            "openapi_spec": notes.openapi_spec,
+            "rss_feeds": notes.rss_feeds,
+            "schema_org_types": notes.schema_org_types,
+            "probe_errors": notes.probe_errors,
+        })
+
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO harvest.data_sources (source_id, name, discovery_notes, last_scouted_at)
+                VALUES (%s, %s, %s::jsonb, now())
+                ON CONFLICT (source_id) DO UPDATE
+                SET discovery_notes = EXCLUDED.discovery_notes,
+                    last_scouted_at = EXCLUDED.last_scouted_at
+                """,
+                (source, source, notes_json),
+            )
+        conn.commit()
+        typer.echo(f"Scouted {source}: llms_txt={'yes' if notes.llms_txt else 'no'}, "
+                   f"robots={'yes' if notes.robots_rules else 'no'}, "
+                   f"sitemaps={len(notes.sitemap_urls)}, rss_feeds={len(notes.rss_feeds)}, "
+                   f"openapi={'yes' if notes.openapi_spec else 'no'}, "
+                   f"schema_org={len(notes.schema_org_types)}, "
+                   f"errors={len(notes.probe_errors)}")
     finally:
         conn.close()
 

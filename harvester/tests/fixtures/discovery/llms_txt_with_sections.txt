@@ -1,0 +1,12 @@
+# OpenAlex
+
+> OpenAlex is a fully open catalog of the global research system.
+
+## API
+
+- [API Docs](https://docs.openalex.org/): Complete reference.
+- [OpenAPI](https://api.openalex.org/openapi.json): Machine-readable spec.
+
+## Bulk
+
+- [Snapshots](https://docs.openalex.org/download-all-data/openalex-snapshot): Quarterly bulk download.
