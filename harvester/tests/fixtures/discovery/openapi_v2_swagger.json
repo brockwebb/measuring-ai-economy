@@ -1,0 +1,14 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Legacy API",
+    "version": "0.1.0"
+  },
+  "host": "legacy.example.com",
+  "basePath": "/api",
+  "paths": {
+    "/items": {
+      "get": {"summary": "List items"}
+    }
+  }
+}
