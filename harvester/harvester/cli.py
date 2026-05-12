@@ -379,5 +379,31 @@ def check_saturation_cmd() -> None:
         conn.close()
 
 
+@app.command("check-failures")
+def check_failures_cmd(
+    min_count: int = typer.Option(10, "--min-count", help="Threshold occurrence count"),
+    window_days: int = typer.Option(7, "--window-days", help="Look-back window"),
+) -> None:
+    """Surface failure_patterns above the alert threshold."""
+    from harvester.improvement.failure_patterns import patterns_above_threshold
+
+    conn = get_connection()
+    try:
+        patterns = patterns_above_threshold(conn, min_count=min_count, window_days=window_days)
+        if not patterns:
+            typer.echo(f"No failure patterns crossing {min_count} occurrences in last {window_days}d.")
+            return
+
+        typer.echo(f"=== Failure patterns above threshold ({min_count} in {window_days}d) ===")
+        for p in patterns:
+            typer.echo(
+                f"  [{p['source_id']}] {p['occurrence_count']}× since "
+                f"{p['first_seen_at']:%Y-%m-%d}: {p['error_signature'][:120]}"
+            )
+            typer.echo(f"      sample: {(p['sample_error'] or '')[:200]}")
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     app()
