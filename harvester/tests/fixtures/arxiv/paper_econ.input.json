@@ -1,0 +1,36 @@
+{
+  "arxiv_doi": null,
+  "arxiv_journal_ref": null,
+  "arxiv_primary_category": "cs.LG",
+  "authors": [
+    "Yaman Kindap",
+    "Manfred Opper",
+    "Benjamin Dupuis",
+    "Umut Simsekli",
+    "Tolga Birdal"
+  ],
+  "id": "http://arxiv.org/abs/2605.10934v1",
+  "links": [
+    {
+      "href": "https://arxiv.org/abs/2605.10934v1",
+      "rel": "alternate",
+      "type": "text/html"
+    },
+    {
+      "href": "https://arxiv.org/pdf/2605.10934v1",
+      "rel": "related",
+      "type": "application/pdf"
+    }
+  ],
+  "published": "2026-05-11T17:58:45Z",
+  "summary": "Modelling extreme events and heavy-tailed phenomena is central to building reliable predictive systems in domains such as finance, climate science, and safety-critical AI. While L\u00e9vy processes provide a natural mathematical framework for capturing jumps and heavy tails, Bayesian inference for L\u00e9vy-driven stochastic differential equations (SDEs) remains intractable with existing methods: Monte Carlo approaches are rigorous but lack scalability, whereas neural variational inference methods are efficient but rely on Gaussian assumptions that fail to capture discontinuities. We address this tension by introducing a neural exponential tilting framework for variational inference in L\u00e9vy-driven SDEs. Our approach constructs a flexible variational family by exponentially reweighting the L\u00e9vy measure using neural networks. This parametrization preserves the jump structure of the underlying process while remaining computationally tractable. To enable efficient inference, we develop a quadratic neural parametrization that yields closed-form normalization of the tilted measure, a conditional Gaussian representation for stable processes that facilitates simulation, and symmetry-aware Monte Carlo estimators for scalable optimization. Empirically, we demonstrate that the method accurately captures jump dynamics and yields reliable posterior inference in regimes where Gaussian-based variational approaches fail, on both synthetic and real-world datasets.",
+  "tags": [
+    "cs.LG",
+    "cs.AI",
+    "cs.CV",
+    "cs.RO",
+    "stat.ML"
+  ],
+  "title": "Variational Inference for L\u00e9vy Process-Driven SDEs via Neural Tilting",
+  "updated": "2026-05-11T17:58:45Z"
+}
