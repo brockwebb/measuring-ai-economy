@@ -350,5 +350,60 @@ def compare_sources(
         conn.close()
 
 
+@app.command("check-saturation")
+def check_saturation_cmd() -> None:
+    """Check all sources' deposit_ratio against saturation thresholds. Email alerts."""
+    from harvester.improvement.saturation import SaturationMonitor
+    from harvester.improvement.notify import send_alert
+
+    conn = get_connection()
+    try:
+        alerts = SaturationMonitor(conn).check_alerts()
+        if not alerts:
+            typer.echo("No saturation alerts. All sources within healthy ratios.")
+            return
+
+        body_lines = []
+        for a in alerts:
+            line = f"[{a.severity.upper()}] {a.message}"
+            typer.echo(line)
+            body_lines.append(line)
+
+        if any(a.severity == "alert" for a in alerts):
+            send_alert(
+                subject=f"[harvester] {sum(1 for a in alerts if a.severity == 'alert')} saturation alert(s)",
+                body="\n".join(body_lines),
+            )
+            raise typer.Exit(code=1)
+    finally:
+        conn.close()
+
+
+@app.command("check-failures")
+def check_failures_cmd(
+    min_count: int = typer.Option(10, "--min-count", help="Threshold occurrence count"),
+    window_days: int = typer.Option(7, "--window-days", help="Look-back window"),
+) -> None:
+    """Surface failure_patterns above the alert threshold."""
+    from harvester.improvement.failure_patterns import patterns_above_threshold
+
+    conn = get_connection()
+    try:
+        patterns = patterns_above_threshold(conn, min_count=min_count, window_days=window_days)
+        if not patterns:
+            typer.echo(f"No failure patterns crossing {min_count} occurrences in last {window_days}d.")
+            return
+
+        typer.echo(f"=== Failure patterns above threshold ({min_count} in {window_days}d) ===")
+        for p in patterns:
+            typer.echo(
+                f"  [{p['source_id']}] {p['occurrence_count']}× since "
+                f"{p['first_seen_at']:%Y-%m-%d}: {p['error_signature'][:120]}"
+            )
+            typer.echo(f"      sample: {(p['sample_error'] or '')[:200]}")
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     app()

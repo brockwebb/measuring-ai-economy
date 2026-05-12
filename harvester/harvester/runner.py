@@ -18,6 +18,11 @@ import psycopg
 
 from harvester.db import get_connection, with_advisory_lock
 from harvester.discovery.scout import MuiScout
+from harvester.improvement.co_occurrence import (
+    CoOccurrenceLedger,
+    find_other_source_for_url,
+)
+from harvester.improvement.failure_patterns import FailureClassifier
 from harvester.loader import Loader
 from harvester.manifest import RawArchive
 from harvester.normalizer import emit_markdown
@@ -100,6 +105,12 @@ class Runner:
             with with_advisory_lock(conn, self.config.source_id):
                 result = self._drive(conn, run_id, query)
 
+            # Phase 3.1: classify failures from this run
+            try:
+                FailureClassifier(conn).classify_run(run_id)
+            except Exception:
+                pass  # classifier failures don't affect run completion
+
             self._close_run_log(
                 conn,
                 run_id,
@@ -121,6 +132,7 @@ class Runner:
         archive = RawArchive(root=self.config.archive_root, manifest_path=self.config.manifest_path)
         self.fetcher.archive = archive
         loader = Loader(conn)
+        co_ledger = CoOccurrenceLedger(conn)
 
         # Build seen-URL set once per run so the fetcher can skip already-known
         # items BEFORE writing raw bytes. Saves disk + bandwidth on dedup-skipped
@@ -134,6 +146,17 @@ class Runner:
             fetched += 1
             try:
                 if self._already_seen(conn, payload.source_url):
+                    other_source = find_other_source_for_url(
+                        conn,
+                        current_source=self.config.source_id,
+                        source_url=payload.source_url,
+                    )
+                    if other_source:
+                        co_ledger.record_url(
+                            canonical_url=payload.source_url,
+                            source_id=self.config.source_id,
+                            source_url=payload.source_url,
+                        )
                     continue
                 parsed = self.etl.parse(payload)
                 rows = list(self.etl.to_rows(parsed))
