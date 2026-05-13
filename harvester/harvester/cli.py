@@ -460,5 +460,60 @@ def expand_citations_cmd(
         conn.close()
 
 
+@app.command("chain-references")
+def chain_references_cmd(
+    max_parents: int = typer.Option(50, "--max-parents",
+        help="Max approved candidates to expand"),
+    ref_limit: int = typer.Option(100, "--ref-limit",
+        help="Max references to pull per parent"),
+    dry_run: bool = typer.Option(False, "--dry-run",
+        help="Print pending count without API calls"),
+) -> None:
+    """Fetch references for approved candidates, enqueue cited papers
+    as depth-2 'proposed' candidates."""
+    from harvester.improvement.citation_chain import CitationChain
+    from harvester.fetchers.semantic_scholar import SemanticScholarFetcher
+    from harvester.manifest import RawArchive
+
+    conn = get_connection()
+    try:
+        if dry_run:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT count(*) FROM harvest.expansion_candidates "
+                    "WHERE kind = 'paper' AND status = 'approved' "
+                    "AND expanded_at IS NULL"
+                )
+                pending = cur.fetchone()[0]
+            typer.echo(
+                f"DRY RUN: would expand up to {max_parents} of {pending} "
+                f"approved-but-unexpanded candidates (ref_limit={ref_limit})."
+            )
+            return
+
+        data_root = _data_root()
+        archive = RawArchive(
+            root=data_root / "raw",
+            manifest_path=data_root / "manifests" / "raw_manifest.parquet",
+        )
+        ss_fetcher = SemanticScholarFetcher(archive=archive)
+
+        chain = CitationChain(conn)
+        result = chain.expand_approved(
+            max_parents=max_parents,
+            ss_fetcher=ss_fetcher,
+            ref_limit=ref_limit,
+        )
+        typer.echo(
+            f"Expanded {result['parents_expanded']} parents: "
+            f"refs_enqueued={result['refs_enqueued']} "
+            f"refs_skipped_no_doi={result['refs_skipped_no_doi']} "
+            f"refs_dedup={result['refs_dedup']} "
+            f"deferred={result['deferred']}"
+        )
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     app()
