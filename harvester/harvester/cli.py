@@ -515,5 +515,37 @@ def chain_references_cmd(
         conn.close()
 
 
+@app.command("calibration")
+def calibration_cmd(
+    window: str = typer.Option("30d", "--window",
+        help="Lookback window (e.g. 7d, 30d, 90d)"),
+    json_out: bool = typer.Option(False, "--json",
+        help="Emit JSON instead of Markdown"),
+) -> None:
+    """Print a Markdown dashboard (or JSON via --json) covering activity,
+    triage drift, saturation, failure clusters, co-occurrence, expansion
+    queues, and provenance review backlog over the window."""
+    import json as _json
+
+    from harvester.improvement.calibration import (
+        build_calibration_report,
+        parse_window,
+        render_json,
+        render_markdown,
+    )
+
+    window_days = parse_window(window)
+    conn = get_connection()
+    try:
+        report = build_calibration_report(conn, window_days=window_days)
+    finally:
+        conn.close()
+
+    if json_out:
+        typer.echo(_json.dumps(render_json(report), indent=2))
+    else:
+        typer.echo(render_markdown(report))
+
+
 if __name__ == "__main__":
     app()
