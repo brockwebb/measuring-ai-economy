@@ -1,8 +1,11 @@
 """Semantic Scholar Graph API fetcher.
 
 API: https://api.semanticscholar.org/graph/v1/
-Auth: API key via x-api-key header (free tier). Without key: 1 req/sec.
-      With key: 10 req/sec (some endpoints).
+Auth: API key via x-api-key header. Without a key, requests share a global
+      1000 req/sec pool across all anonymous clients and are throttled
+      further during heavy use — expect bursts of 429s independent of your
+      own rate. With a key, you get your own quota and higher limits.
+      We pace ourselves at 1 req/sec regardless (see rate_limit_spec).
 Pagination: ?offset=N&limit=M (limit max 100 for search).
 
 Two modes:
@@ -53,8 +56,10 @@ class SemanticScholarFetcher(HttpApiFetcher):
     source_id = "semantic_scholar"
 
     def rate_limit_spec(self) -> RateLimit:
-        # 10 req/sec with API key, 1 req/sec without. Conservative: 1 req/sec
-        # since search endpoint has stricter limits than per-paper lookups.
+        # Self-imposed politeness, not an API per-client cap. Anonymous traffic
+        # shares a global 1000 req/sec pool that gets throttled during heavy
+        # use; authenticated keys get their own quota. 1 req/sec is well below
+        # either ceiling and keeps the Sunday batch from spiking.
         return RateLimit(
             requests_per_second=1.0,
             max_retries=3,
