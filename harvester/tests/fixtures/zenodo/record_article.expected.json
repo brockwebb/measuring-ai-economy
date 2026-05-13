@@ -1,0 +1,46 @@
+{
+  "published_date": "2010-10-21",
+  "rows": [
+    {
+      "data": {
+        "authors": "[{\"name\": \"Ruzindana, Byarushane\", \"affiliation\": \"Rwanda Environment Management Authority (REMA)\"}, {\"name\": \"Karegeya, Ndayishimiye\", \"affiliation\": \"Department of Research, Rwanda Environment Management Authority (REMA)\"}, {\"name\": \"Umuhire, Nyirabwami\", \"affiliation\": \"University of Rwanda\"}, {\"name\": \"Mukagasana, Kasamwa\", \"affiliation\": \"Department of Interdisciplinary Studies, African Leadership University (ALU), Kigali\"}]",
+        "document_type": "article",
+        "doi": "10.5281/zenodo.18907208",
+        "payload": "{\"zenodo_id\": 18907208, \"resource_type\": \"publication\", \"resource_subtype\": \"article\", \"keywords\": [\"Rwanda\", \"Multivariate Models\", \"Ornstein-Uhlenbeck Process\", \"Stochastic Differential Equations\", \"Identifiability Analysis\", \"Asymptotic Theory\", \"Financial Mathematics\"]}",
+        "published_date": "2010-10-21",
+        "raw_hash": "sha256:test",
+        "source_id": "zenodo",
+        "source_url": "https://zenodo.org/records/18907208",
+        "title": "Stochastic Models for Financial Risk Estimation in Rwanda: Asymptotic Analysis and Identifiability Checks"
+      },
+      "target_table": "harvest.document_metadata"
+    },
+    {
+      "data": {
+        "abstract": "<p>Stochastic models are increasingly used in financial risk estimation to predict market movements and assess potential risks. We employ a multivariate Ornstein-Uhlenbeck process to model financial data. Identifiability of the parameters is examined through theoretical analysis. The model's convergence properties were analysed, revealing that under certain conditions, the estimates converge to true parameter values with increasing sample size. Our findings support the use of stochastic models for risk estimation in Rwanda and highlight the importance of understanding model identifiability. Further research should focus on validating these models using historical data from Rwanda and exploring their application in policy-making. Stochastic Processes, Financial Risk Estimation, Asymptotic Analysis, Identifiability Checks The analytical core is $\\hat{y}_t=\\mathcal{F}(x_t;\\theta)$ with $\\hat{\\theta}=argmin_{\\theta}L(\\theta)$, and convergence is established under standard smoothness conditions.</p>",
+        "authors": "[{\"name\": \"Ruzindana, Byarushane\", \"affiliation\": \"Rwanda Environment Management Authority (REMA)\"}, {\"name\": \"Karegeya, Ndayishimiye\", \"affiliation\": \"Department of Research, Rwanda Environment Management Authority (REMA)\"}, {\"name\": \"Umuhire, Nyirabwami\", \"affiliation\": \"University of Rwanda\"}, {\"name\": \"Mukagasana, Kasamwa\", \"affiliation\": \"Department of Interdisciplinary Studies, African Leadership University (ALU), Kigali\"}]",
+        "doi": "10.5281/zenodo.18907208",
+        "keywords": [
+          "Rwanda",
+          "Multivariate Models",
+          "Ornstein-Uhlenbeck Process",
+          "Stochastic Differential Equations",
+          "Identifiability Analysis",
+          "Asymptotic Theory",
+          "Financial Mathematics"
+        ],
+        "license": "cc-by-4.0",
+        "publication_date": "2010-10-21",
+        "raw_hash": "sha256:test",
+        "resource_subtype": "article",
+        "resource_type": "publication",
+        "title": "Stochastic Models for Financial Risk Estimation in Rwanda: Asymptotic Analysis and Identifiability Checks",
+        "zenodo_id": 18907208,
+        "zenodo_url": "https://zenodo.org/records/18907208"
+      },
+      "target_table": "harvest.zenodo_records"
+    }
+  ],
+  "source_url": "https://zenodo.org/records/18907208",
+  "title": "Stochastic Models for Financial Risk Estimation in Rwanda: Asymptotic Analysis and Identifiability Checks"
+}

@@ -1,0 +1,159 @@
+{
+  "conceptdoi": "10.5281/zenodo.18907207",
+  "conceptrecid": "18907207",
+  "created": "2026-03-08T05:26:11.268779+00:00",
+  "doi": "10.5281/zenodo.18907208",
+  "doi_url": "https://doi.org/10.5281/zenodo.18907208",
+  "files": [
+    {
+      "checksum": "md5:0ec9fa9936a08d4e62a6645e07f79443",
+      "id": "4de7941f-8485-4037-8472-b3ec4648de54",
+      "key": "article.html",
+      "links": {
+        "self": "https://zenodo.org/api/records/18907208/files/article.html/content"
+      },
+      "size": 19969
+    },
+    {
+      "checksum": "md5:c44344be367a64dd8a8fc2d1d6113761",
+      "id": "bcfb167b-e0c0-4bdb-ba58-d60f5cea3c79",
+      "key": "zenodo.18907208.pdf",
+      "links": {
+        "self": "https://zenodo.org/api/records/18907208/files/zenodo.18907208.pdf/content"
+      },
+      "size": 85927
+    }
+  ],
+  "id": 18907208,
+  "links": {
+    "access": "https://zenodo.org/api/records/18907208/access",
+    "access_grants": "https://zenodo.org/api/records/18907208/access/grants",
+    "access_links": "https://zenodo.org/api/records/18907208/access/links",
+    "access_request": "https://zenodo.org/api/records/18907208/access/request",
+    "access_users": "https://zenodo.org/api/records/18907208/access/users",
+    "archive": "https://zenodo.org/api/records/18907208/files-archive",
+    "archive_media": "https://zenodo.org/api/records/18907208/media-files-archive",
+    "communities": "https://zenodo.org/api/records/18907208/communities",
+    "communities-suggestions": "https://zenodo.org/api/records/18907208/communities-suggestions",
+    "doi": "https://doi.org/10.5281/zenodo.18907208",
+    "draft": "https://zenodo.org/api/records/18907208/draft",
+    "file_modification": "https://zenodo.org/api/records/18907208/file-modification",
+    "files": "https://zenodo.org/api/records/18907208/files",
+    "latest": "https://zenodo.org/api/records/18907208/versions/latest",
+    "latest_html": "https://zenodo.org/records/18907208/latest",
+    "media_files": "https://zenodo.org/api/records/18907208/media-files",
+    "parent": "https://zenodo.org/api/records/18907207",
+    "parent_doi": "https://doi.org/10.5281/zenodo.18907207",
+    "parent_doi_html": "https://zenodo.org/doi/10.5281/zenodo.18907207",
+    "parent_html": "https://zenodo.org/records/18907207",
+    "preview_html": "https://zenodo.org/records/18907208?preview=1",
+    "quota_increase": "https://zenodo.org/api/records/18907208/quota-increase",
+    "request_deletion": "https://zenodo.org/api/records/18907208/request-deletion",
+    "requests": "https://zenodo.org/api/records/18907208/requests",
+    "reserve_doi": "https://zenodo.org/api/records/18907208/draft/pids/doi",
+    "self": "https://zenodo.org/api/records/18907208",
+    "self_doi": "https://doi.org/10.5281/zenodo.18907208",
+    "self_doi_html": "https://zenodo.org/doi/10.5281/zenodo.18907208",
+    "self_html": "https://zenodo.org/records/18907208",
+    "self_iiif_manifest": "https://zenodo.org/api/iiif/record:18907208/manifest",
+    "self_iiif_sequence": "https://zenodo.org/api/iiif/record:18907208/sequence/default",
+    "thumbnails": {
+      "10": "https://zenodo.org/api/iiif/record:18907208:zenodo.18907208.pdf/full/%5E10,/0/default.jpg",
+      "100": "https://zenodo.org/api/iiif/record:18907208:zenodo.18907208.pdf/full/%5E100,/0/default.jpg",
+      "1200": "https://zenodo.org/api/iiif/record:18907208:zenodo.18907208.pdf/full/%5E1200,/0/default.jpg",
+      "250": "https://zenodo.org/api/iiif/record:18907208:zenodo.18907208.pdf/full/%5E250,/0/default.jpg",
+      "50": "https://zenodo.org/api/iiif/record:18907208:zenodo.18907208.pdf/full/%5E50,/0/default.jpg",
+      "750": "https://zenodo.org/api/iiif/record:18907208:zenodo.18907208.pdf/full/%5E750,/0/default.jpg"
+    },
+    "versions": "https://zenodo.org/api/records/18907208/versions"
+  },
+  "metadata": {
+    "access_right": "open",
+    "communities": [
+      {
+        "id": "parj_africa"
+      }
+    ],
+    "creators": [
+      {
+        "affiliation": "Rwanda Environment Management Authority (REMA)",
+        "name": "Ruzindana, Byarushane"
+      },
+      {
+        "affiliation": "Department of Research, Rwanda Environment Management Authority (REMA)",
+        "name": "Karegeya, Ndayishimiye"
+      },
+      {
+        "affiliation": "University of Rwanda",
+        "name": "Umuhire, Nyirabwami"
+      },
+      {
+        "affiliation": "Department of Interdisciplinary Studies, African Leadership University (ALU), Kigali",
+        "name": "Mukagasana, Kasamwa"
+      }
+    ],
+    "description": "<p>Stochastic models are increasingly used in financial risk estimation to predict market movements and assess potential risks. We employ a multivariate Ornstein-Uhlenbeck process to model financial data. Identifiability of the parameters is examined through theoretical analysis. The model's convergence properties were analysed, revealing that under certain conditions, the estimates converge to true parameter values with increasing sample size. Our findings support the use of stochastic models for risk estimation in Rwanda and highlight the importance of understanding model identifiability. Further research should focus on validating these models using historical data from Rwanda and exploring their application in policy-making. Stochastic Processes, Financial Risk Estimation, Asymptotic Analysis, Identifiability Checks The analytical core is $\\hat{y}_t=\\mathcal{F}(x_t;\\theta)$ with $\\hat{\\theta}=argmin_{\\theta}L(\\theta)$, and convergence is established under standard smoothness conditions.</p>",
+    "doi": "10.5281/zenodo.18907208",
+    "journal": {
+      "issue": "1",
+      "title": "African Topology Studies (Pure Science)",
+      "volume": "2010"
+    },
+    "keywords": [
+      "Rwanda",
+      "Multivariate Models",
+      "Ornstein-Uhlenbeck Process",
+      "Stochastic Differential Equations",
+      "Identifiability Analysis",
+      "Asymptotic Theory",
+      "Financial Mathematics"
+    ],
+    "language": "eng",
+    "license": {
+      "id": "cc-by-4.0"
+    },
+    "publication_date": "2010-10-21",
+    "relations": {
+      "version": [
+        {
+          "index": 0,
+          "is_last": true,
+          "parent": {
+            "pid_type": "recid",
+            "pid_value": "18907207"
+          }
+        }
+      ]
+    },
+    "resource_type": {
+      "subtype": "article",
+      "title": "Journal article",
+      "type": "publication"
+    },
+    "title": "Stochastic Models for Financial Risk Estimation in Rwanda: Asymptotic Analysis and Identifiability Checks"
+  },
+  "modified": "2026-03-08T05:26:12.902107+00:00",
+  "owners": [
+    {
+      "id": "474651"
+    }
+  ],
+  "recid": "18907208",
+  "revision": 5,
+  "state": "done",
+  "stats": {
+    "downloads": 5,
+    "unique_downloads": 5,
+    "unique_views": 6,
+    "version_downloads": 5,
+    "version_unique_downloads": 5,
+    "version_unique_views": 6,
+    "version_views": 7,
+    "views": 7
+  },
+  "status": "published",
+  "submitted": true,
+  "swh": null,
+  "title": "Stochastic Models for Financial Risk Estimation in Rwanda: Asymptotic Analysis and Identifiability Checks",
+  "updated": "2026-03-08T05:26:12.902107+00:00"
+}
