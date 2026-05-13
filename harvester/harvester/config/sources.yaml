@@ -41,6 +41,7 @@ arxiv:
   daily_cost_ceiling_usd: 5.00
   expected_schema_version: 5
   triage_enabled: true
+  citation_chain_enabled: true   # arxiv papers seed citation chains
   triage_threshold: 0.4
   triage_model: "claude-sonnet-4-6"
   scout_base_url: "https://arxiv.org"

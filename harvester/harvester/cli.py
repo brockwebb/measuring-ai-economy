@@ -207,6 +207,7 @@ def run(
         triage_axes_yaml=(Path(__file__).parent / "triage" / "research_axes.yaml")
             if cfg.get("triage_enabled") else None,
         triage_threshold=float(cfg.get("triage_threshold", 0.4)),
+        citation_chain_enabled=bool(cfg.get("citation_chain_enabled", False)),
     )
 
     archive = RawArchive(root=config.archive_root, manifest_path=config.manifest_path)
