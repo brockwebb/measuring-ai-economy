@@ -21,9 +21,9 @@ def test_zenodo_fetcher_base_url():
     assert f.base_url() == "https://zenodo.org/api/records"
 
 
-def test_zenodo_fetcher_build_params_includes_term_and_pagination():
+def test_zenodo_fetcher_build_params_includes_keyword_and_pagination():
     f = ZenodoFetcher.__new__(ZenodoFetcher)
-    params = f.build_params({"term": "diffusion model", "per_page": 20}, page=2)
+    params = f.build_params({"keyword": "diffusion model", "per_page": 20}, page=2)
     assert params["q"] == "diffusion model"
     assert params["page"] == 2
     assert params["size"] == 20
@@ -34,7 +34,7 @@ def test_zenodo_fetcher_build_params_includes_term_and_pagination():
 
 def test_zenodo_fetcher_build_params_supports_resource_type_override():
     f = ZenodoFetcher.__new__(ZenodoFetcher)
-    params = f.build_params({"term": "foo", "type": "dataset"}, page=1)
+    params = f.build_params({"keyword": "foo", "type": "dataset"}, page=1)
     assert params["type"] == "dataset"
 
 
@@ -66,7 +66,7 @@ def test_zenodo_fetcher_build_params_appends_publication_date_range():
     f = ZenodoFetcher.__new__(ZenodoFetcher)
     params = f.build_params(
         {
-            "term": "diffusion model",
+            "keyword": "diffusion model",
             "publication_date_gte": "2026-01-01",
             "publication_date_lte": "2026-05-01",
         },
@@ -88,3 +88,11 @@ def test_zenodo_fetcher_build_params_date_range_with_empty_term_strips_leading_s
     )
     # With no term, the concatenation starts with a leading space that .strip() removes.
     assert params["q"] == "AND publication_date:[2026-01-01 TO 2026-05-01]"
+
+
+def test_zenodo_fetcher_build_params_caps_per_page_at_25():
+    """Zenodo's unauthenticated API returns 400 for size > 25. The CLI
+    defaults per_page to 100, so the fetcher must cap aggressively."""
+    f = ZenodoFetcher.__new__(ZenodoFetcher)
+    params = f.build_params({"keyword": "test", "per_page": 100}, page=1)
+    assert params["size"] == 25

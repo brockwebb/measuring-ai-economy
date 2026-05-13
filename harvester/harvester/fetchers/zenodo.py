@@ -28,9 +28,12 @@ class ZenodoFetcher(HttpApiFetcher):
         return "https://zenodo.org/api/records"
 
     def build_params(self, query: dict[str, Any], *, page: int) -> dict[str, Any]:
-        per_page = int(query.get("per_page", 50))
+        # Zenodo's unauthenticated API caps size at 25 items per page; values
+        # above that return HTTP 400. Cap aggressively here so the fetcher
+        # works with the default per_page=100 the CLI passes.
+        per_page = min(int(query.get("per_page", 25)), 25)
         params: dict[str, Any] = {
-            "q": query.get("term", ""),
+            "q": query.get("keyword", ""),
             "page": page,
             "size": per_page,
             "type": query.get("type", "publication"),
