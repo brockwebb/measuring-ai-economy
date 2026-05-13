@@ -1,0 +1,176 @@
+{
+  "conceptdoi": "10.5281/zenodo.17108211",
+  "conceptrecid": "17108211",
+  "created": "2026-04-23T14:17:22.036589+00:00",
+  "doi": "10.5281/zenodo.19709838",
+  "doi_url": "https://doi.org/10.5281/zenodo.19709838",
+  "files": [
+    {
+      "checksum": "md5:6bcfc2e110f1241132c314c8dc379921",
+      "id": "2a8df477-2165-4bb5-9450-ae462332f759",
+      "key": "Reimannia Revision 2026.pdf",
+      "links": {
+        "self": "https://zenodo.org/api/records/19709838/files/Reimannia%20Revision%202026.pdf/content"
+      },
+      "size": 851072
+    }
+  ],
+  "id": 19709838,
+  "links": {
+    "access": "https://zenodo.org/api/records/19709838/access",
+    "access_grants": "https://zenodo.org/api/records/19709838/access/grants",
+    "access_links": "https://zenodo.org/api/records/19709838/access/links",
+    "access_request": "https://zenodo.org/api/records/19709838/access/request",
+    "access_users": "https://zenodo.org/api/records/19709838/access/users",
+    "archive": "https://zenodo.org/api/records/19709838/files-archive",
+    "archive_media": "https://zenodo.org/api/records/19709838/media-files-archive",
+    "communities": "https://zenodo.org/api/records/19709838/communities",
+    "communities-suggestions": "https://zenodo.org/api/records/19709838/communities-suggestions",
+    "doi": "https://doi.org/10.5281/zenodo.19709838",
+    "draft": "https://zenodo.org/api/records/19709838/draft",
+    "file_modification": "https://zenodo.org/api/records/19709838/file-modification",
+    "files": "https://zenodo.org/api/records/19709838/files",
+    "latest": "https://zenodo.org/api/records/19709838/versions/latest",
+    "latest_html": "https://zenodo.org/records/19709838/latest",
+    "media_files": "https://zenodo.org/api/records/19709838/media-files",
+    "parent": "https://zenodo.org/api/records/17108211",
+    "parent_doi": "https://doi.org/10.5281/zenodo.17108211",
+    "parent_doi_html": "https://zenodo.org/doi/10.5281/zenodo.17108211",
+    "parent_html": "https://zenodo.org/records/17108211",
+    "preview_html": "https://zenodo.org/records/19709838?preview=1",
+    "quota_increase": "https://zenodo.org/api/records/19709838/quota-increase",
+    "request_deletion": "https://zenodo.org/api/records/19709838/request-deletion",
+    "requests": "https://zenodo.org/api/records/19709838/requests",
+    "reserve_doi": "https://zenodo.org/api/records/19709838/draft/pids/doi",
+    "self": "https://zenodo.org/api/records/19709838",
+    "self_doi": "https://doi.org/10.5281/zenodo.19709838",
+    "self_doi_html": "https://zenodo.org/doi/10.5281/zenodo.19709838",
+    "self_html": "https://zenodo.org/records/19709838",
+    "self_iiif_manifest": "https://zenodo.org/api/iiif/record:19709838/manifest",
+    "self_iiif_sequence": "https://zenodo.org/api/iiif/record:19709838/sequence/default",
+    "thumbnails": {
+      "10": "https://zenodo.org/api/iiif/record:19709838:Reimannia%20Revision%202026.pdf/full/%5E10,/0/default.jpg",
+      "100": "https://zenodo.org/api/iiif/record:19709838:Reimannia%20Revision%202026.pdf/full/%5E100,/0/default.jpg",
+      "1200": "https://zenodo.org/api/iiif/record:19709838:Reimannia%20Revision%202026.pdf/full/%5E1200,/0/default.jpg",
+      "250": "https://zenodo.org/api/iiif/record:19709838:Reimannia%20Revision%202026.pdf/full/%5E250,/0/default.jpg",
+      "50": "https://zenodo.org/api/iiif/record:19709838:Reimannia%20Revision%202026.pdf/full/%5E50,/0/default.jpg",
+      "750": "https://zenodo.org/api/iiif/record:19709838:Reimannia%20Revision%202026.pdf/full/%5E750,/0/default.jpg"
+    },
+    "versions": "https://zenodo.org/api/records/19709838/versions"
+  },
+  "metadata": {
+    "access_right": "open",
+    "communities": [
+      {
+        "id": "tp-a-m-c"
+      },
+      {
+        "id": "ahxiom"
+      }
+    ],
+    "creators": [
+      {
+        "affiliation": null,
+        "name": "Perry, Anthony L",
+        "orcid": "0009-0009-1279-3056"
+      }
+    ],
+    "custom": {
+      "code:codeRepository": "https://doi.org/10.5281/zenodo.18347585",
+      "code:programmingLanguage": [
+        {
+          "id": "python",
+          "title": {
+            "en": "Python"
+          }
+        }
+      ]
+    },
+    "dates": [
+      {
+        "description": "Final Version for Publication ",
+        "type": "updated"
+      },
+      {
+        "description": "Publication Version",
+        "type": "available"
+      },
+      {
+        "description": "updated revised paper",
+        "type": "updated"
+      }
+    ],
+    "description": "<p>Probabilistic modeling on curved spaces presents fundamental theoretical challenges addressed separately by multiple research communities. This paper makes two principal contributions that, to the best of our knowledge, have not appeared together in the prior&nbsp;literature. First, we develop a unied theoretical framework integrating four probabilistic&nbsp;paradigms, Riemannian diffusion models, manifold normalizing flows, energy-based models, and information geometry through shared geometric primitives, showing that all four&nbsp;arise as special cases of heat kernel evolution with different boundary conditions.</p>\n<p>&nbsp;</p>\n<p>Second, we establish three novel theoretical guarantees with complete proofs: curvature-dependent<br>stability bounds for geodesic integrators (Theorem 4.3); convergence rates for manifold score<br>matching with explicit injectivity-radius dependence (Theorem 4.6); and variance bounds<br>for intrinsic MCMC with a curvature correction factor (Theorem 4.9).</p>",
+    "doi": "10.5281/zenodo.19709838",
+    "keywords": [
+      "riemannian manifolds",
+      "probabilistic modeling",
+      "geometric deep learning",
+      "diffusion models",
+      "continuous normalizing flows",
+      "energy-based models",
+      "information geometry",
+      "stochastic differential equations",
+      "heat kernel methods"
+    ],
+    "language": "eng",
+    "license": {
+      "id": "cc-by-4.0"
+    },
+    "publication_date": "2026-04-22",
+    "references": [
+      "1] Amari, S. (2016). Information Geometry and Its Applications. Springer. [2] Ambrose, W. and Singer, I.M. (1953). A theorem on holonomy. Transactions of the American Mathematical Society, 75(3):428443. [3] Ay, N., Jost, J., L\u00ea, H.V., and Schwachh\u00f6fer, L. (2017). Information Geometry. Springer. [4] Ay, N., Jost, J., L\u00ea, H.V., and Schwachh\u00f6fer, L. (2017b). Information geometry and sucient statistics. Probability Theory and Related Fields, 162(1):327364. [5] Bakry, D. and \u00c9mery, M. (1985). Diusions hypercontractives. S\u00e9minaire de Probabilit\u00e9s XIX, 1123/1985:177206. [6] Bakry, D., Gentil, I., and Ledoux, M. (2014). Analysis and Geometry of Markov Diusion Operators. Springer. [7] Berger, M. (2003). A Panoramic View of Riemannian Geometry. Springer. [8] Betancourt, M. (2017). A conceptual introduction to Hamiltonian Monte Carlo. arXiv preprint arXiv:1701.02434. [9] Bishop, R.L. and Crittenden, R.J. (1964). Geometry of Manifolds. Academic Press. [10] Bose, A.J., Smofsky, A., Liao, R., Panangaden, P., and Hamilton, W.L. (2020). Latent variable modelling with hyperbolic normalizing ows. ICML. [11] Bronstein, M.M., Bruna, J., Cohen, T., and Veli\u00a3kovi\u00a2, P. (2021). Geometric deep learning: Grids, groups, graphs, geodesics, and gauges. arXiv preprint arXiv:2104.13478. [12] Byrne, S. and Girolami, M. (2013). Geodesic Monte Carlo on embedded manifolds. Scandinavian Journal of Statistics, 40(4):825845. [13] Celledoni, E., Marthinsen, H., and Owren, B. (2014). An introduction to Lie group integrators. Journal of Computational Physics, 257:10401061. [14] \u0192encov, N.N. (1982). Statistical Decision Rules and Optimal Inference. AMS. [15] Cheeger, J. (1975). Finiteness theorems for Riemannian manifolds. American Journal of Mathematics, 92(1):6174. [16] Cheeger, J. and Ebin, D.G. (1975). Comparison Theorems in Riemannian Geometry. North- Holland. [17] Chen, R.T.Q., Rubanova, Y., Bettencourt, J., and Duvenaud, D. (2018). Neural ordinary dierential equations. NeurIPS. [18] Chikuse, Y. (2003). Statistics on Special Manifolds. Springer. [19] Chirikjian, G.S. (2012). Stochastic Models, Information Theory, and Lie Groups, Vol. 2. Birkh\u00e4user. [20] Cohen, T.S., Weiler, M., Kicanaoglu, B., and Welling, M. (2019). Gauge equivariant convolutional networks. ICML. [21] Dalalyan, A.S. (2017). Theoretical guarantees for approximate sampling from smooth and log-concave densities. JRSS-B, 79(3):651676. [22] de Bortoli, V., Mathieu, E., Hutchinson, M., Thornton, J., Teh, Y.W., and Doucet, A. (2022). Riemannian score-based generative modelling. NeurIPS. [23] do Carmo, M.P. (1992). Riemannian Geometry. Birkh\u00e4user. [24] Durmus, A. and Moulines, \u00c9. (2019). High-dimensional Bayesian inference via the unadjusted Langevin algorithm. Bernoulli, 25(4A):28542882. [25] Elworthy, K.D. (1982). Stochastic Dierential Equations on Manifolds. Cambridge University Press. [26] Falorsi, L., de Haan, P., Davidson, T.R., and Forr\u00e9, P. (2019). Reparameterizing distributions on Lie groups. AISTATS. [27] Gallot, S., Hulin, D., and Lafontaine, J. (1990). Riemannian Geometry (2nd ed.). Springer. [28] Ganea, O.-E., B\u00e9cigneul, G., and Hofmann, T. (2018). Hyperbolic neural networks. NeurIPS. [29] Girolami, M. and Calderhead, B. (2011). Riemann manifold Langevin and Hamiltonian Monte Carlo methods. JRSS-B, 73(2):123214. [30] Grathwohl, W., Chen, R.T.Q., Bettencourt, J., Sutskever, I., and Duvenaud, D. (2019). FFJORD: Free-form continuous dynamics for scalable reversible generative models. ICLR. [31] Grigor'yan, A. (2009). Heat Kernel and Analysis on Manifolds. AMS/IP Studies in Advanced Mathematics. [32] Gromov, M. (1999). Metric Structures for Riemannian and Non-Riemannian Spaces. Birkh\u00e4user. [33] Hairer, E., N\u00f8rsett, S.P., and Wanner, G. (1993). Solving Ordinary Dierential Equations I: Nonsti Problems (2nd ed.). Springer. [34] Hairer, E., Lubich, C., and Wanner, G. (2006). Geometric Numerical Integration (2nd ed.). Springer. [35] Hauberg, S. (2018). Only Bayes should learn a manifold. arXiv preprint arXiv:1806.04994. [36] Hornik, K., Stinchcombe, M., and White, H. (1989). Multilayer feedforward networks are universal approximators. Neural Networks, 2(5):359366. [37] Hsu, E.P. (2002). Stochastic Analysis on Manifolds. AMS. [38] Huang, C.-W., Aghajohari, M., Bose, A.J., Panangaden, P., and Courville, A. (2022). Riemannian diusion models. NeurIPS. [39] Hyv\u00e4rinen, A. (2005). Estimation of non-normalized statistical models by score matching. JMLR, 6:695709. [40] Jing, B., Corso, G., Chang, J., Barzilay, R., and Jaakkola, T.S. (2022). Torsional diusion for molecular conformer generation. NeurIPS.  41] Jordan, R., Kinderlehrer, D., and Otto, F. (1998). The variational formulation of the FokkerPlanck equation. SIAM Journal on Mathematical Analysis, 29(1):117. [42] Karcher, H. (1977). Riemannian center of mass and mollier smoothing. Communications on Pure and Applied Mathematics, 30(5):509541. [43] Khasminskii, R. (2012). Stochastic Stability of Dierential Equations (2nd ed.). Springer. [44] Kingma, D.P. and Welling, M. (2014). Auto-encoding variational Bayes. ICLR. [45] Klingenberg, W. (1959). Contributions to Riemannian geometry in the large. Annals of Mathematics, 69(3):654666. [46] Leach, A., Schmon, S.M., Sherrill, M.T., and de Bortoli, V. (2022). Denoising diusion probabilistic models on SO(3) for rotational alignment. ICLR Workshop on Deep Generative Models for Highly Structured Data. [47] Ledoux, M. (2001). The Concentration of Measure Phenomenon. AMS. [48] Lee, J.M. (2018). Introduction to Riemannian Manifolds (2nd ed.). Springer. [49] Livingstone, S., Faulkner, M.F., and Roberts, G.O. (2019). Kinetic energy choice in Hamiltonian/ Hybrid Monte Carlo. Biometrika, 106(2):303319. [50] Lou, A., Lim, D., Katsman, I., Huang, L., Jiang, Q., Lim, S.N., and De Sa, C. (2020). Neural manifold ordinary dierential equations. NeurIPS. [51] Mardia, K.V. and Jupp, P.E. (2000). Directional Statistics. Wiley. [52] Mathieu, E. and Nickel, M. (2020). Riemannian continuous normalizing ows. NeurIPS. [53] McLachlan, G.J. and Peel, D. (2000). Finite Mixture Models. Wiley. [54] Minakshisundaram, S. and Pleijel, \u00c5. (1949). Some properties of the eigenfunctions of the Laplace-operator on Riemannian manifolds. Canadian Journal of Mathematics, 1(3):242 256. [55] Moakher, M. (2005). A dierential geometric approach to the geometric mean of symmetric positive-denite matrices. SIAM Journal on Matrix Analysis and Applications, 26(3):735 747. [56] Neal, R.M. (2011). MCMC using Hamiltonian dynamics. In Handbook of Markov Chain Monte Carlo, CRC Press. [57] Nichol, A.Q. and Dhariwal, P. (2021). Improved denoising diusion probabilistic models. ICML. [58] Nickel, M. and Kiela, D. (2017). Poincar\u00e9 embeddings for learning hierarchical representations. NeurIPS. [59] Nielsen, F. (2020). An elementary introduction to information geometry. Entropy, 22(10):1100. [60] Papamakarios, G., Nalisnick, E., Rezende, D.J., Mohamed, S., and Lakshminarayanan, B. (2021). Normalizing ows for probabilistic modeling and inference. JMLR, 22(57):164. [61] Pennec, X., Fillard, P., and Ayache, N. (2006). A Riemannian framework for tensor computing. International Journal of Computer Vision, 66(1):4166. [62] Petersen, P. (2016). Riemannian Geometry (3rd ed.). Springer. [63] Rao, C.R. (1945). Information and the accuracy attainable in the estimation of statistical parameters. Bulletin of the Calcutta Mathematical Society, 37:8191. [64] Rauch, H.E. (1951). A contribution to dierential geometry in the large. Annals of Mathematics, 54(1):3855. [65] Rezende, D., Papamakarios, G., Racani\u00e8re, S., Albergo, M., Kanwar, G., Shanahan, P., and Cranmer, K. (2020). Normalizing ows on tori and spheres. ICML. [66] Roberts, G.O. and Tweedie, R.L. (1996). Exponential convergence of Langevin distributions and their discrete approximations. Bernoulli, 2(4):341363. [67] Rosenberg, S. (1997). The Laplacian on a Riemannian Manifold. Cambridge University Press. [68] Sakai, T. (1996). Riemannian Geometry. AMS. [69] Skopek, O., Ganea, O.-E., and B\u00e9cigneul, G. (2020). Mixed-curvature variational autoencoders. ICLR. [70] Skovgaard, L.T. (1984). A Riemannian geometry of the multivariate normal model. Scandinavian Journal of Statistics, 11(4):211223. [71] Song, Y., Sohl-Dickstein, J., Kingma, D.P., Kumar, A., Ermon, S., and Poole, B. (2021). Score-based generative modeling through stochastic dierential equations. ICLR. [72] Villani, C. (2009). Optimal Transport: Old and New. Springer. [73] Vincent, P. (2011). A connection between score matching and denoising autoencoders. Neural Computation, 23(7):16611674. [74] Xifara, T., Sherlock, C., Livingstone, S., Byrne, S., and Girolami, M. (2014). Langevin diusions and the Metropolis-adjusted Langevin algorithm. Statistics & Probability Letters, 91:1419. [75] Yim, J., Trippe, B.L., De Bortoli, V., Mathieu, E., Doucet, A., Barzilay, R., and Jaakkola, T.S. (2023). SE(3) diusion model with application to protein backbone generation. ICML. [76] Zhang, H. and Sra, S. (2016). First-order methods for geodesically convex optimization. COLT."
+    ],
+    "related_identifiers": [
+      {
+        "identifier": "https://doi.org/10.5281/zenodo.18347585",
+        "relation": "isSupplementedBy",
+        "resource_type": "dataset",
+        "scheme": "url"
+      }
+    ],
+    "relations": {
+      "version": [
+        {
+          "index": 8,
+          "is_last": true,
+          "parent": {
+            "pid_type": "recid",
+            "pid_value": "17108211"
+          }
+        }
+      ]
+    },
+    "resource_type": {
+      "subtype": "preprint",
+      "title": "Preprint",
+      "type": "publication"
+    },
+    "title": "Probabilistic Modeling on Riemannian Manifolds a Unified Geometric Framework with Novel Stability Guarantees and Curvature-Adaptive Algorithms",
+    "version": "5"
+  },
+  "modified": "2026-04-23T14:17:22.526929+00:00",
+  "owners": [
+    {
+      "id": "1379961"
+    }
+  ],
+  "recid": "19709838",
+  "revision": 4,
+  "state": "done",
+  "stats": {
+    "downloads": 485,
+    "unique_downloads": 399,
+    "unique_views": 738,
+    "version_downloads": 40,
+    "version_unique_downloads": 30,
+    "version_unique_views": 47,
+    "version_views": 51,
+    "views": 785
+  },
+  "status": "published",
+  "submitted": true,
+  "swh": null,
+  "title": "Probabilistic Modeling on Riemannian Manifolds a Unified Geometric Framework with Novel Stability Guarantees and Curvature-Adaptive Algorithms",
+  "updated": "2026-04-23T14:17:22.526929+00:00"
+}

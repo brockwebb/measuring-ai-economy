@@ -1,0 +1,144 @@
+{
+  "conceptdoi": "10.5281/zenodo.19699233",
+  "conceptrecid": "19699233",
+  "created": "2026-04-24T18:02:06.454013+00:00",
+  "doi": "10.5281/zenodo.19699234",
+  "doi_url": "https://doi.org/10.5281/zenodo.19699234",
+  "files": [
+    {
+      "checksum": "md5:afcb1af74dfb5d84e30161cf58d79095",
+      "id": "8eafb1cd-74c0-43d4-b7d3-654a3271fe35",
+      "key": "fep_lean_v1_04-24-2026.pdf",
+      "links": {
+        "self": "https://zenodo.org/api/records/19699234/files/fep_lean_v1_04-24-2026.pdf/content"
+      },
+      "size": 1908263
+    }
+  ],
+  "id": 19699234,
+  "links": {
+    "access": "https://zenodo.org/api/records/19699234/access",
+    "access_grants": "https://zenodo.org/api/records/19699234/access/grants",
+    "access_links": "https://zenodo.org/api/records/19699234/access/links",
+    "access_request": "https://zenodo.org/api/records/19699234/access/request",
+    "access_users": "https://zenodo.org/api/records/19699234/access/users",
+    "archive": "https://zenodo.org/api/records/19699234/files-archive",
+    "archive_media": "https://zenodo.org/api/records/19699234/media-files-archive",
+    "communities": "https://zenodo.org/api/records/19699234/communities",
+    "communities-suggestions": "https://zenodo.org/api/records/19699234/communities-suggestions",
+    "doi": "https://doi.org/10.5281/zenodo.19699234",
+    "draft": "https://zenodo.org/api/records/19699234/draft",
+    "file_modification": "https://zenodo.org/api/records/19699234/file-modification",
+    "files": "https://zenodo.org/api/records/19699234/files",
+    "latest": "https://zenodo.org/api/records/19699234/versions/latest",
+    "latest_html": "https://zenodo.org/records/19699234/latest",
+    "media_files": "https://zenodo.org/api/records/19699234/media-files",
+    "parent": "https://zenodo.org/api/records/19699233",
+    "parent_doi": "https://doi.org/10.5281/zenodo.19699233",
+    "parent_doi_html": "https://zenodo.org/doi/10.5281/zenodo.19699233",
+    "parent_html": "https://zenodo.org/records/19699233",
+    "preview_html": "https://zenodo.org/records/19699234?preview=1",
+    "quota_increase": "https://zenodo.org/api/records/19699234/quota-increase",
+    "request_deletion": "https://zenodo.org/api/records/19699234/request-deletion",
+    "requests": "https://zenodo.org/api/records/19699234/requests",
+    "reserve_doi": "https://zenodo.org/api/records/19699234/draft/pids/doi",
+    "self": "https://zenodo.org/api/records/19699234",
+    "self_doi": "https://doi.org/10.5281/zenodo.19699234",
+    "self_doi_html": "https://zenodo.org/doi/10.5281/zenodo.19699234",
+    "self_html": "https://zenodo.org/records/19699234",
+    "self_iiif_manifest": "https://zenodo.org/api/iiif/record:19699234/manifest",
+    "self_iiif_sequence": "https://zenodo.org/api/iiif/record:19699234/sequence/default",
+    "thumbnails": {
+      "10": "https://zenodo.org/api/iiif/record:19699234:fep_lean_v1_04-24-2026.pdf/full/%5E10,/0/default.jpg",
+      "100": "https://zenodo.org/api/iiif/record:19699234:fep_lean_v1_04-24-2026.pdf/full/%5E100,/0/default.jpg",
+      "1200": "https://zenodo.org/api/iiif/record:19699234:fep_lean_v1_04-24-2026.pdf/full/%5E1200,/0/default.jpg",
+      "250": "https://zenodo.org/api/iiif/record:19699234:fep_lean_v1_04-24-2026.pdf/full/%5E250,/0/default.jpg",
+      "50": "https://zenodo.org/api/iiif/record:19699234:fep_lean_v1_04-24-2026.pdf/full/%5E50,/0/default.jpg",
+      "750": "https://zenodo.org/api/iiif/record:19699234:fep_lean_v1_04-24-2026.pdf/full/%5E750,/0/default.jpg"
+    },
+    "versions": "https://zenodo.org/api/records/19699234/versions"
+  },
+  "metadata": {
+    "access_right": "open",
+    "communities": [
+      {
+        "id": "active-inference"
+      }
+    ],
+    "creators": [
+      {
+        "affiliation": "Active Inference Institute",
+        "name": "Friedman, Daniel Ari",
+        "orcid": "0000-0001-6232-9096"
+      }
+    ],
+    "custom": {
+      "code:codeRepository": "https://github.com/ActiveInferenceInstitute/FEP_Lean",
+      "code:developmentStatus": {
+        "id": "active",
+        "title": {
+          "en": "Active"
+        }
+      },
+      "code:programmingLanguage": [
+        {
+          "id": "python",
+          "title": {
+            "en": "Python"
+          }
+        }
+      ]
+    },
+    "description": "<p>The Free Energy Principle (FEP) unifies a broad family of systems properties and configurations under a variational free energy functional, however (an open source resource for) a machine-checked approach to assessing such and related formal claims has remained absent. Dependent-type provers require explicit measure spaces, domination, and integrability that literature prose and equations may leave implicit. Absent a shared formal substrate the long-running debate over what the FEP actually proves &mdash; as opposed to what it sketches, illustrates, or motivates &mdash; debate on certain technical, empirical, and philosophical points can be unproductive. We address this gap with a curated catalog of 50 topics that spans the five technical pillars of the framework &mdash; 14 in the Free Energy Principle proper, 11 in Active Inference, 10 in Bayesian Mechanics, 8 in Information Geometry, and 7 in non-equilibrium Thermodynamics &mdash; each compiled as a namespaced Lean 4 sketch against Mathlib4. Every sketch carries a natural-language statement, Mathlib imports, an ecosystem-maturity tag, and a sorry-free theorem body authored in a single source of truth (scripts/catalogue_sketches.py) and regenerated deterministically into config/topics.yaml. A per- topic aggregate Lean module collects, for each topic, both the full Lean sketch and the typeset LaTeX statement signatures in juxtaposition, so agents who want the mathematics without the proof engineering can read the same content from either side. On the pinned stack leanprover/lean4:v4.29.0 / Mathlib4 v4.29.0 the shipped catalog compiles 50/50 sorry-free under lake env lean, establishing a reproducible, machine-checkable anchor that subsequent theoretical and empirical work on the FEP can extend, dispute, or refine without re-litigating what has already been formalized.</p>\n<p>Atop this verified kernel we layer an LLM-assisted commentary and iterated drafting pipeline (Hermes / OpenGauss) whose primary model is moonshotai/kimi-k2.6 with a cache keyed to Lean source hashes: the language model can draft, explain, and cross-link each sketch, while the Lean 4 kernel remains sole ground truth for every compilation claim in the manuscript. The project enforces a strict zero-mock testing discipline &mdash; every one of the 347 test cases exercises a real file, a real SQLite store, a live compiler invocation, or an actual HTTP call &mdash; and holds combined line-plus-branch coverage of project source above the 89 % CI gate; run run_20260424_064334 completed the full catalog end-to-end with a mean per-topic wall time of 2.1 s, total runtime dominated by model latency rather than proof work. Binding the catalog to the compiler surfaces two complementary findings that structure the discussion: an initial set of FEP-related constructions that already typecheck against today&rsquo;s Mathlib4 &mdash; finite-set probability, Bayesian updating, Kullback&ndash;Leibler divergence on finite spaces, variational free-energy bounds, and substantive measure-theoretic fragments &mdash; and some aspirational sketches (epistemic status: even more tentative), including related to native stochastic differential equations, Fokker&ndash;Planck evolution, full Riemannian information geometry, and a general-measure divergence.</p>\n<p>The net contribution and current direction of the work is to convert long-standing qualitative arguments about the mathematical status of the FEP into a maintainable, version-pinned, publicly auditable record of exactly which claims are machine-checkable and which remain open; methods, source, catalog, figures. The end-to-end reproduction of this manuscript are released at the FEP_Lean open-source repository <a href=\"https://github.com/ActiveInferenceInstitute/FEP_Lean\">https://github.com/ActiveInferenceInstitute/FEP_Lean</a> via the template approach <a href=\"https://github.com/docxology/template\">https://github.com/docxology/template</a> which injects updated validated package-level and manuscript-level metadata into the template as rendered and versioned in practice.</p>",
+    "doi": "10.5281/zenodo.19699234",
+    "journal": {
+      "title": "Active Inference Journal"
+    },
+    "license": {
+      "id": "cc-by-4.0"
+    },
+    "publication_date": "2026-04-24",
+    "relations": {
+      "version": [
+        {
+          "index": 0,
+          "is_last": true,
+          "parent": {
+            "pid_type": "recid",
+            "pid_value": "19699233"
+          }
+        }
+      ]
+    },
+    "resource_type": {
+      "subtype": null,
+      "title": "Publication",
+      "type": "dataset"
+    },
+    "title": "Towards Lean 4 Formalization of the Free Energy Principle: AI-Driven Theorem Sketching and Verification for Active Inference and Bayesian Mechanics"
+  },
+  "modified": "2026-04-24T20:30:18.298315+00:00",
+  "owners": [
+    {
+      "id": "131706"
+    }
+  ],
+  "recid": "19699234",
+  "revision": 6,
+  "state": "done",
+  "stats": {
+    "downloads": 129,
+    "unique_downloads": 101,
+    "unique_views": 137,
+    "version_downloads": 129,
+    "version_unique_downloads": 101,
+    "version_unique_views": 137,
+    "version_views": 151,
+    "views": 151
+  },
+  "status": "published",
+  "submitted": true,
+  "swh": null,
+  "title": "Towards Lean 4 Formalization of the Free Energy Principle: AI-Driven Theorem Sketching and Verification for Active Inference and Bayesian Mechanics",
+  "updated": "2026-04-24T20:30:18.298315+00:00"
+}

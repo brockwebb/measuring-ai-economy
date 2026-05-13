@@ -1,0 +1,48 @@
+{
+  "published_date": "2026-04-22",
+  "rows": [
+    {
+      "data": {
+        "authors": "[{\"name\": \"Perry, Anthony L\", \"orcid\": \"0009-0009-1279-3056\"}]",
+        "document_type": "preprint",
+        "doi": "10.5281/zenodo.19709838",
+        "payload": "{\"zenodo_id\": 19709838, \"resource_type\": \"publication\", \"resource_subtype\": \"preprint\", \"keywords\": [\"riemannian manifolds\", \"probabilistic modeling\", \"geometric deep learning\", \"diffusion models\", \"continuous normalizing flows\", \"energy-based models\", \"information geometry\", \"stochastic differential equations\", \"heat kernel methods\"]}",
+        "published_date": "2026-04-22",
+        "raw_hash": "sha256:test",
+        "source_id": "zenodo",
+        "source_url": "https://zenodo.org/records/19709838",
+        "title": "Probabilistic Modeling on Riemannian Manifolds a Unified Geometric Framework with Novel Stability Guarantees and Curvature-Adaptive Algorithms"
+      },
+      "target_table": "harvest.document_metadata"
+    },
+    {
+      "data": {
+        "abstract": "<p>Probabilistic modeling on curved spaces presents fundamental theoretical challenges addressed separately by multiple research communities. This paper makes two principal contributions that, to the best of our knowledge, have not appeared together in the prior&nbsp;literature. First, we develop a unied theoretical framework integrating four probabilistic&nbsp;paradigms, Riemannian diffusion models, manifold normalizing flows, energy-based models, and information geometry through shared geometric primitives, showing that all four&nbsp;arise as special cases of heat kernel evolution with different boundary conditions.</p>\n<p>&nbsp;</p>\n<p>Second, we establish three novel theoretical guarantees with complete proofs: curvature-dependent<br>stability bounds for geodesic integrators (Theorem 4.3); convergence rates for manifold score<br>matching with explicit injectivity-radius dependence (Theorem 4.6); and variance bounds<br>for intrinsic MCMC with a curvature correction factor (Theorem 4.9).</p>",
+        "authors": "[{\"name\": \"Perry, Anthony L\", \"orcid\": \"0009-0009-1279-3056\"}]",
+        "doi": "10.5281/zenodo.19709838",
+        "keywords": [
+          "riemannian manifolds",
+          "probabilistic modeling",
+          "geometric deep learning",
+          "diffusion models",
+          "continuous normalizing flows",
+          "energy-based models",
+          "information geometry",
+          "stochastic differential equations",
+          "heat kernel methods"
+        ],
+        "license": "cc-by-4.0",
+        "publication_date": "2026-04-22",
+        "raw_hash": "sha256:test",
+        "resource_subtype": "preprint",
+        "resource_type": "publication",
+        "title": "Probabilistic Modeling on Riemannian Manifolds a Unified Geometric Framework with Novel Stability Guarantees and Curvature-Adaptive Algorithms",
+        "zenodo_id": 19709838,
+        "zenodo_url": "https://zenodo.org/records/19709838"
+      },
+      "target_table": "harvest.zenodo_records"
+    }
+  ],
+  "source_url": "https://zenodo.org/records/19709838",
+  "title": "Probabilistic Modeling on Riemannian Manifolds a Unified Geometric Framework with Novel Stability Guarantees and Curvature-Adaptive Algorithms"
+}

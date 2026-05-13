@@ -100,3 +100,38 @@ semantic_scholar:
     - "diffusion model latent geometry"
     - "Wasserstein distributionally robust optimization"
   tier_2_terms: []
+
+zenodo:
+  fetcher: harvester.fetchers.zenodo.ZenodoFetcher
+  etl: harvester.etl.zenodo.ZenodoETL
+  rolling_window_days: 30
+  inbox_backpressure_max: 5000
+  daily_cost_ceiling_usd: 5.00
+  expected_schema_version: 8
+  triage_enabled: true
+  citation_chain_enabled: true
+  triage_threshold: 0.4
+  triage_model: "claude-sonnet-4-6"
+  scout_base_url: "https://zenodo.org"
+  tier_1_terms:
+    - "stochastic differential equations"
+    - "diffusion model"
+    - "information geometry"
+    - "Wasserstein distributionally robust optimization"
+    - "Fokker-Planck"
+    - "score-based generative model"
+    - "uncertainty quantification deep learning"
+    - "neural SDE"
+    - "latent space geometry"
+    - "model calibration probabilistic"
+    - "canine cognition"
+    - "dog behavior training"
+    - "BJJ Brazilian jiu-jitsu"
+    - "MMA training science"
+    - "strength training hypertrophy"
+    - "performance psychology grit"
+    - "flow state athletes"
+    - "Shannon information theory"
+    - "control systems PID"
+    - "symbolic AI knowledge graph"
+  tier_2_terms: []
