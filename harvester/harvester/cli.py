@@ -547,5 +547,46 @@ def calibration_cmd(
         typer.echo(render_markdown(report))
 
 
+@app.command("drain-url")
+def drain_url_cmd(
+    url: str = typer.Argument(..., help="URL to fetch and stage"),
+) -> None:
+    """Fetch a single URL via crawl4ai, run the standard ETL + triage
+    + load pipeline. On-demand replacement for the legacy
+    ~/.wintermute/scripts/drain_url_c4a.py."""
+    cfg = _sources_config()["url_drain"]
+    fetcher_cls = _load_class(cfg["fetcher"])
+    etl_cls = _load_class(cfg["etl"])
+
+    data_root = _data_root()
+    config = RunnerConfig(
+        source_id="url_drain",
+        archive_root=data_root / "raw",
+        manifest_path=data_root / "manifests" / "raw_manifest.parquet",
+        inbox_dir=_staging_dir(),
+        inbox_backpressure_max=int(cfg.get("inbox_backpressure_max", 5000)),
+        expected_schema_version=int(cfg.get("expected_schema_version", 9)),
+        scout_base_url=cfg.get("scout_base_url"),
+        triage_enabled=bool(cfg.get("triage_enabled", True)),
+        triage_model=str(cfg.get("triage_model", "claude-sonnet-4-6")),
+        triage_axes_yaml=(Path(__file__).parent / "triage" / "research_axes.yaml")
+            if cfg.get("triage_enabled") else None,
+        triage_threshold=float(cfg.get("triage_threshold", 0.4)),
+        citation_chain_enabled=bool(cfg.get("citation_chain_enabled", False)),
+    )
+
+    archive = RawArchive(root=config.archive_root, manifest_path=config.manifest_path)
+    fetcher = fetcher_cls(archive=archive)
+    etl = etl_cls()
+
+    runner = Runner(config=config, fetcher=fetcher, etl=etl)
+    result = runner.run({"url": url})
+    typer.echo(
+        f"run_id={result.run_id} status={result.status} "
+        f"fetched={result.items_fetched} deposited={result.items_deposited} "
+        f"failed={result.items_failed}"
+    )
+
+
 if __name__ == "__main__":
     app()
