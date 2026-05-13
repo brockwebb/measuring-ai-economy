@@ -74,8 +74,15 @@ class LlmTriage:
         if isinstance(response, dict) and "result" in response and isinstance(response["result"], (dict, str)):
             body = response["result"]
             if isinstance(body, str):
+                # Strip markdown code fences (```json ... ``` or ``` ... ```)
+                stripped = body.strip()
+                if stripped.startswith("```"):
+                    lines = stripped.splitlines()
+                    # drop first line (```json or ```) and last line (```)
+                    inner = "\n".join(lines[1:-1]) if lines[-1].strip() == "```" else "\n".join(lines[1:])
+                    stripped = inner.strip()
                 try:
-                    body = json.loads(body)
+                    body = json.loads(stripped)
                 except json.JSONDecodeError:
                     pass
 
