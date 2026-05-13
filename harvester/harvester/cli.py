@@ -405,5 +405,59 @@ def check_failures_cmd(
         conn.close()
 
 
+@app.command("expand-citations")
+def expand_citations_cmd(
+    max_batch: int = typer.Option(100, "--max-batch", help="Max proposed candidates to process"),
+    threshold: float = typer.Option(0.4, "--threshold", help="Triage score promotion cutoff"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Print pending candidates without API calls"),
+) -> None:
+    """Drive CitationChain.process_pending — verify pending candidates via
+    Semantic Scholar + LlmTriage, promote to approved/rejected."""
+    from harvester.improvement.citation_chain import CitationChain
+    from harvester.fetchers.semantic_scholar import SemanticScholarFetcher
+    from harvester.triage.llm_triage import LlmTriage
+    from harvester.manifest import RawArchive
+
+    conn = get_connection()
+    try:
+        if dry_run:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT count(*) FROM harvest.expansion_candidates "
+                    "WHERE kind = 'paper' AND status = 'proposed'"
+                )
+                pending = cur.fetchone()[0]
+            typer.echo(f"DRY RUN: would process up to {max_batch} of {pending} pending candidates "
+                       f"(threshold={threshold}).")
+            return
+
+        # Real run — instantiate fetcher + triage
+        data_root = _data_root()
+        archive = RawArchive(
+            root=data_root / "raw",
+            manifest_path=data_root / "manifests" / "raw_manifest.parquet",
+        )
+        ss_fetcher = SemanticScholarFetcher(archive=archive)
+        triage = LlmTriage(
+            model_id="claude-sonnet-4-6",
+            axes_yaml=Path(__file__).parent / "triage" / "research_axes.yaml",
+        )
+
+        chain = CitationChain(conn)
+        result = chain.process_pending(
+            max_batch=max_batch,
+            ss_fetcher=ss_fetcher,
+            triage=triage,
+            threshold=threshold,
+        )
+        typer.echo(
+            f"Processed {sum(result.values())} candidates: "
+            f"approved={result['approved']} rejected={result['rejected']} "
+            f"deferred={result['deferred']}"
+        )
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     app()
