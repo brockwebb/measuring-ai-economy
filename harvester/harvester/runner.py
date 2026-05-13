@@ -18,6 +18,7 @@ import psycopg
 
 from harvester.db import get_connection, with_advisory_lock
 from harvester.discovery.scout import MuiScout
+from harvester.improvement.citation_chain import CitationChain
 from harvester.improvement.co_occurrence import (
     CoOccurrenceLedger,
     find_other_source_for_url,
@@ -43,6 +44,7 @@ class RunnerConfig:
     triage_model: str = "claude-sonnet-4-6"
     triage_axes_yaml: Path | None = None
     triage_threshold: float = 0.4
+    citation_chain_enabled: bool = False
 
 
 @dataclass
@@ -172,6 +174,16 @@ class Runner:
                     except Exception as e:
                         conn.rollback()  # clear any aborted txn from a failed _record_triage_result
                         parsed.metadata["triage_error"] = str(e)
+                if self.config.citation_chain_enabled and parsed.metadata.get("doi"):
+                    try:
+                        CitationChain(conn).enqueue(
+                            parsed,
+                            parent_run_id=run_id,
+                            parent_doc_id=self._lookup_doc_id(conn, parsed),
+                        )
+                    except Exception as e:
+                        parsed.metadata["citation_chain_error"] = str(e)
+                        conn.rollback()
                 inbox_path = emit_markdown(
                     parsed,
                     inbox_dir=self.config.inbox_dir,
@@ -335,6 +347,19 @@ class Runner:
                 (self.config.source_id,),
             )
             return {row[0] for row in cur.fetchall()}
+
+    def _lookup_doc_id(self, conn: psycopg.Connection, parsed: "ParsedDoc") -> int | None:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT doc_id FROM harvest.document_metadata
+                WHERE source_id = %s AND source_url = %s
+                ORDER BY doc_id DESC LIMIT 1
+                """,
+                (self.config.source_id, parsed.source_url),
+            )
+            row = cur.fetchone()
+            return row[0] if row else None
 
     def _record_triage_result(self, conn: psycopg.Connection, parsed: ParsedDoc, tr) -> None:
         """Persist a TriageResult to harvest.triage_results."""
