@@ -156,3 +156,120 @@ class CitationChain:
                 rejected += 1
 
         return {"approved": approved, "rejected": rejected, "deferred": deferred}
+
+    def expand_approved(
+        self,
+        *,
+        max_parents: int = 50,
+        ss_fetcher,
+        ref_limit: int = 100,
+    ) -> dict[str, int]:
+        """Fetch references for approved-but-not-yet-expanded candidates,
+        enqueue each cited paper (with a DOI) as a depth-2 'proposed' candidate.
+
+        For each approved parent with expanded_at IS NULL:
+        1. Pull DOI from payload.
+        2. Call ss_fetcher.get_references(f"DOI:{doi}", limit=ref_limit).
+           - Raises: deferred++, expanded_at stays NULL, retried next run.
+           - Returns (even []): stamp expanded_at, parents_expanded++.
+        3. For each cited paper with a DOI, INSERT a depth-2 candidate with
+           parent_candidate_id and propagated parent_doc_id. UNIQUE(kind, payload)
+           dedups across parents.
+
+        Returns {parents_expanded, refs_enqueued, refs_skipped_no_doi,
+                 refs_dedup, deferred}.
+        """
+        import json as _json
+
+        parents_expanded = 0
+        refs_enqueued = 0
+        refs_skipped_no_doi = 0
+        refs_dedup = 0
+        deferred = 0
+
+        with self._conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, payload, parent_doc_id
+                FROM harvest.expansion_candidates
+                WHERE kind = 'paper'
+                  AND status = 'approved'
+                  AND expanded_at IS NULL
+                ORDER BY score DESC NULLS LAST, proposed_at ASC
+                LIMIT %s
+                """,
+                (max_parents,),
+            )
+            parents = cur.fetchall()
+
+        for parent_id, payload, parent_doc_id in parents:
+            doi = (payload or {}).get("doi")
+            if not doi:
+                # Approved without a DOI shouldn't happen (enqueue requires one),
+                # but if it does, stamp so we don't loop on it.
+                with self._conn.cursor() as cur:
+                    cur.execute(
+                        "UPDATE harvest.expansion_candidates "
+                        "SET expanded_at = now() WHERE id = %s",
+                        (parent_id,),
+                    )
+                self._conn.commit()
+                parents_expanded += 1
+                continue
+
+            try:
+                refs = ss_fetcher.get_references(f"DOI:{doi}", limit=ref_limit)
+            except Exception:
+                self._conn.rollback()
+                deferred += 1
+                continue
+
+            for ref in refs:
+                external_ids = ref.get("externalIds") if isinstance(ref, dict) else None
+                ref_doi = external_ids.get("DOI") if isinstance(external_ids, dict) else None
+                if not ref_doi:
+                    refs_skipped_no_doi += 1
+                    continue
+                ref_payload = {
+                    "doi": ref_doi,
+                    "title": ref.get("title"),
+                    "source_url": f"https://www.semanticscholar.org/paper/{ref.get('paperId', '')}",
+                }
+                with self._conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        INSERT INTO harvest.expansion_candidates
+                            (kind, payload, parent_doc_id, parent_candidate_id,
+                             depth, status)
+                        VALUES ('paper', %s::jsonb, %s, %s, 2, 'proposed')
+                        ON CONFLICT (kind, payload) DO NOTHING
+                        RETURNING id
+                        """,
+                        (
+                            _json.dumps(ref_payload, sort_keys=True),
+                            parent_doc_id,
+                            parent_id,
+                        ),
+                    )
+                    inserted = cur.fetchone()
+                if inserted:
+                    refs_enqueued += 1
+                else:
+                    refs_dedup += 1
+
+            with self._conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE harvest.expansion_candidates "
+                    "SET expanded_at = now() WHERE id = %s",
+                    (parent_id,),
+                )
+            self._conn.commit()
+            parents_expanded += 1
+
+        return {
+            "parents_expanded": parents_expanded,
+            "refs_enqueued": refs_enqueued,
+            "refs_skipped_no_doi": refs_skipped_no_doi,
+            "refs_dedup": refs_dedup,
+            "deferred": deferred,
+        }
