@@ -365,3 +365,181 @@ def build_calibration_report(
         candidates=_candidates(conn),
         provenance=_provenance(conn),
     )
+
+
+# ---- Renderers ----
+
+def render_markdown(report: CalibrationReport) -> str:
+    """Render the report as a human-readable Markdown dashboard."""
+    lines: list[str] = []
+    lines.append(f"# Wintermute Calibration — {report.window_days}d window")
+    lines.append(f"_Generated: {report.generated_at.isoformat()}_")
+    lines.append("")
+
+    # Activity
+    lines.append("## Activity")
+    lines.append(f"Total runs: {report.activity.total_runs} | "
+                 f"Total deposits: {report.activity.total_deposits}")
+    if report.activity.by_source:
+        lines.append("")
+        lines.append("| Source | Runs | Completed | Failed | Deposited | LLM $ |")
+        lines.append("|---|---:|---:|---:|---:|---:|")
+        for s in report.activity.by_source:
+            lines.append(
+                f"| {s.source_id} | {s.runs} | {s.completed} | {s.failed} "
+                f"| {s.items_deposited} | ${s.llm_cost_usd:.2f} |"
+            )
+    lines.append("")
+
+    # Triage
+    lines.append("## Triage Distribution")
+    lines.append(f"Reviewed: {report.triage.reviewed_count} | "
+                 f"Unreviewed: {report.triage.unreviewed_count}")
+    if report.triage.median_score is not None:
+        lines.append(f"Median score: {report.triage.median_score:.2f} | "
+                     f"p90: {report.triage.p90_score:.2f}")
+    lines.append("")
+    lines.append("| Band | Count |")
+    lines.append("|---|---:|")
+    for lo, count in report.triage.score_histogram:
+        lines.append(f"| {lo:.1f}–{lo+0.1:.1f} | {count} |")
+    lines.append("")
+
+    # Saturation
+    lines.append("## Saturation")
+    if report.saturation.by_source:
+        lines.append("| Source | Deposit Ratio | Status |")
+        lines.append("|---|---:|---|")
+        for s in report.saturation.by_source:
+            lines.append(f"| {s.source_id} | {s.deposit_ratio:.2f} | {s.status} |")
+    else:
+        lines.append("_No saturation data in window._")
+    lines.append("")
+
+    # Failure Patterns
+    lines.append("## Failure Patterns")
+    if report.failure_patterns.alerts:
+        lines.append("| Source | Signature | Count | Last Seen | Status |")
+        lines.append("|---|---|---:|---|---|")
+        for f in report.failure_patterns.alerts:
+            sig = f.error_signature[:60]
+            lines.append(
+                f"| {f.source_id} | {sig} | {f.occurrence_count} "
+                f"| {f.last_seen_at.isoformat()} | {f.mitigation_status} |"
+            )
+    else:
+        lines.append("_No unaddressed failure patterns above threshold._")
+    lines.append("")
+
+    # Co-occurrence
+    lines.append("## Co-occurrence")
+    if report.co_occurrence.top_n:
+        lines.append("| Key | Kind | Sources | Encounters |")
+        lines.append("|---|---|---|---:|")
+        for c in report.co_occurrence.top_n:
+            srcs = ", ".join(c.sources)
+            lines.append(f"| {c.canonical_key[:60]} | {c.canonical_kind} "
+                         f"| {srcs} | {c.total_encounters} |")
+    else:
+        lines.append("_No multi-source matches in window._")
+    lines.append("")
+
+    # Expansion Candidates
+    lines.append("## Expansion Candidates")
+    c = report.candidates
+    lines.append(
+        f"Proposed: {c.proposed} | "
+        f"Approved (unexpanded): {c.approved_unexpanded} | "
+        f"Approved (expanded): {c.approved_expanded} | "
+        f"Rejected: {c.rejected} | "
+        f"Ingested: {c.ingested}"
+    )
+    if c.by_depth:
+        lines.append(f"By depth: " + ", ".join(
+            f"depth-{d}={n}" for d, n in sorted(c.by_depth.items())))
+    if c.oldest_proposed_days is not None:
+        lines.append(f"Oldest proposed: {c.oldest_proposed_days} days")
+    lines.append("")
+
+    # Provenance Review Queue
+    lines.append("## Provenance Review Queue")
+    p = report.provenance
+    lines.append(
+        f"Unreviewed total: {p.unreviewed_total} | "
+        f"Low-confidence (<0.5): {p.unreviewed_low_confidence} | "
+        f"High-confidence (>=0.85): {p.unreviewed_high_confidence}"
+    )
+    lines.append("")
+
+    return "\n".join(lines)
+
+
+def render_json(report: CalibrationReport) -> dict[str, Any]:
+    """Render the report as a JSON-serializable dict (for the judgment job
+    and any other downstream automation)."""
+    return {
+        "window_days": report.window_days,
+        "generated_at": report.generated_at.isoformat(),
+        "activity": {
+            "total_runs": report.activity.total_runs,
+            "total_deposits": report.activity.total_deposits,
+            "by_source": [
+                {
+                    "source_id": s.source_id, "runs": s.runs,
+                    "completed": s.completed, "failed": s.failed,
+                    "items_deposited": s.items_deposited,
+                    "llm_cost_usd": s.llm_cost_usd,
+                }
+                for s in report.activity.by_source
+            ],
+        },
+        "triage": {
+            "score_histogram": [[lo, c] for lo, c in report.triage.score_histogram],
+            "reviewed_count": report.triage.reviewed_count,
+            "unreviewed_count": report.triage.unreviewed_count,
+            "median_score": report.triage.median_score,
+            "p90_score": report.triage.p90_score,
+        },
+        "saturation": {
+            "by_source": [
+                {"source_id": s.source_id, "deposit_ratio": s.deposit_ratio, "status": s.status}
+                for s in report.saturation.by_source
+            ],
+        },
+        "failure_patterns": {
+            "alerts": [
+                {
+                    "source_id": f.source_id, "error_signature": f.error_signature,
+                    "occurrence_count": f.occurrence_count,
+                    "last_seen_at": f.last_seen_at.isoformat(),
+                    "mitigation_status": f.mitigation_status,
+                    "sample_error": f.sample_error,
+                }
+                for f in report.failure_patterns.alerts
+            ],
+        },
+        "co_occurrence": {
+            "top_n": [
+                {
+                    "canonical_key": c.canonical_key, "canonical_kind": c.canonical_kind,
+                    "sources": list(c.sources), "source_count": c.source_count,
+                    "total_encounters": c.total_encounters,
+                }
+                for c in report.co_occurrence.top_n
+            ],
+        },
+        "candidates": {
+            "proposed": report.candidates.proposed,
+            "approved_unexpanded": report.candidates.approved_unexpanded,
+            "approved_expanded": report.candidates.approved_expanded,
+            "rejected": report.candidates.rejected,
+            "ingested": report.candidates.ingested,
+            "by_depth": {str(k): v for k, v in report.candidates.by_depth.items()},
+            "oldest_proposed_days": report.candidates.oldest_proposed_days,
+        },
+        "provenance": {
+            "unreviewed_total": report.provenance.unreviewed_total,
+            "unreviewed_low_confidence": report.provenance.unreviewed_low_confidence,
+            "unreviewed_high_confidence": report.provenance.unreviewed_high_confidence,
+        },
+    }
