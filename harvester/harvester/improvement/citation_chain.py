@@ -179,8 +179,6 @@ class CitationChain:
         Returns {parents_expanded, refs_enqueued, refs_skipped_no_doi,
                  refs_dedup, deferred}.
         """
-        import json as _json
-
         parents_expanded = 0
         refs_enqueued = 0
         refs_skipped_no_doi = 0
@@ -246,7 +244,7 @@ class CitationChain:
                         RETURNING id
                         """,
                         (
-                            _json.dumps(ref_payload, sort_keys=True),
+                            json.dumps(ref_payload, sort_keys=True),
                             parent_doc_id,
                             parent_id,
                         ),
