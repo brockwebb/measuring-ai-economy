@@ -1,0 +1,57 @@
+{
+  "abstract": "In this paper, we propose IKG-Agent, an intent-driven knowledge graph agent framework designed to perform adaptive workflow reasoning for complex question answering. Unlike traditional approaches, IKG-Agent integrates semantic parsing (SP), subgraph retrieval (SR), and large language models (LLMs) into a unified system. When a user submits a query, IKG-Agent first identifies the underlying intent and constructs a tailored reasoning workflow. Based on task complexity and query requirements, the framework dynamically selects optimal reasoning paths and tools, adjusting workflows during execution. By leveraging a shared knowledge memory system to continuously evaluate information sufficiency at each step, IKG-Agent mitigates error accumulation in traditional SP/SR-based reasoning\u2014particularly for long relational paths and complex multi-hop inference. Experimental results demonstrate that IKG-Agent outperforms state-of-the-art methods on multiple public datasets, achieving significant improvements in accuracy and reliability for tasks requiring multi-level reasoning. Our code and data will be publicly released.",
+  "authors": [
+    {
+      "authorId": "2310857148",
+      "name": "Yunzhi Liang"
+    },
+    {
+      "authorId": "2392426689",
+      "name": "Siyang Tao"
+    },
+    {
+      "authorId": "2392423964",
+      "name": "Haoyuan Teng"
+    },
+    {
+      "authorId": "2368736986",
+      "name": "Hongyu Yao"
+    },
+    {
+      "authorId": "2310774038",
+      "name": "Xin Wang"
+    },
+    {
+      "authorId": "2265791529",
+      "name": "Xiaobo Guo"
+    },
+    {
+      "authorId": "2265757376",
+      "name": "Lei Wang"
+    },
+    {
+      "authorId": "2057476634",
+      "name": "Ji Xiang"
+    }
+  ],
+  "citationCount": 0,
+  "externalIds": {
+    "CorpusId": 283014855,
+    "DBLP": "conf/ijcnn/LiangTTYWGWX25",
+    "DOI": "10.1109/IJCNN64981.2025.11228190"
+  },
+  "influentialCitationCount": 0,
+  "openAccessPdf": {
+    "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/IJCNN64981.2025.11228190?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/IJCNN64981.2025.11228190, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use.",
+    "license": null,
+    "status": null,
+    "url": ""
+  },
+  "paperId": "a07808b4d776a18b9f2bfcf9983a58d917b8d994",
+  "publicationDate": "2025-06-30",
+  "referenceCount": 45,
+  "title": "IKG-Agent: Intent-driven Knowledge Graph Agent for Adaptive Workflow Reasoning",
+  "url": "https://www.semanticscholar.org/paper/a07808b4d776a18b9f2bfcf9983a58d917b8d994",
+  "venue": "IEEE International Joint Conference on Neural Network",
+  "year": 2025
+}
