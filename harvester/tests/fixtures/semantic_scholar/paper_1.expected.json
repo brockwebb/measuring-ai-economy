@@ -1,0 +1,47 @@
+{
+  "metadata": {
+    "abstract": null,
+    "document_type": "semantic_scholar_paper",
+    "doi": "10.1016/j.ress.2025.112123",
+    "ss_paper_id": "54448d79857b3d71f181f535c8d6e39c38cf90af",
+    "venue": "Reliability Engineering & System Safety"
+  },
+  "published_date": "2025-12-01",
+  "rows": [
+    {
+      "data": {
+        "authors": "[\"Xingyu Xiao\", \"Ben Qi\", \"Zijian Yin\", \"Jiejuan Tong\", \"Jun Sun\", \"Zhe Sui\", \"Jingang Liang\", \"Jun Zhao\", \"Haitao Wang\"]",
+        "document_type": "semantic_scholar_paper",
+        "doi": "10.1016/j.ress.2025.112123",
+        "payload": "{\"ss_paper_id\": \"54448d79857b3d71f181f535c8d6e39c38cf90af\", \"venue\": \"Reliability Engineering & System Safety\", \"year\": 2025, \"citation_count\": 7}",
+        "published_date": "2025-12-01",
+        "raw_hash": "sha256:test",
+        "source_id": "semantic_scholar",
+        "source_url": "https://www.semanticscholar.org/paper/54448d79857b3d71f181f535c8d6e39c38cf90af",
+        "title": "AutoGraph: An intelligent knowledge-graph agent for procedure automation and dynamic human reliability support in high-risk industries"
+      },
+      "target_table": "harvest.document_metadata"
+    },
+    {
+      "data": {
+        "abstract": null,
+        "authors": "[\"Xingyu Xiao\", \"Ben Qi\", \"Zijian Yin\", \"Jiejuan Tong\", \"Jun Sun\", \"Zhe Sui\", \"Jingang Liang\", \"Jun Zhao\", \"Haitao Wang\"]",
+        "citation_count": 7,
+        "doi": "10.1016/j.ress.2025.112123",
+        "influential_count": 0,
+        "open_access_pdf_url": "",
+        "published_date": "2025-12-01",
+        "raw_hash": "sha256:test",
+        "reference_count": 38,
+        "s2_url": "https://www.semanticscholar.org/paper/54448d79857b3d71f181f535c8d6e39c38cf90af",
+        "ss_paper_id": "54448d79857b3d71f181f535c8d6e39c38cf90af",
+        "title": "AutoGraph: An intelligent knowledge-graph agent for procedure automation and dynamic human reliability support in high-risk industries",
+        "venue": "Reliability Engineering & System Safety",
+        "year": 2025
+      },
+      "target_table": "harvest.semantic_scholar_papers"
+    }
+  ],
+  "source_url": "https://www.semanticscholar.org/paper/54448d79857b3d71f181f535c8d6e39c38cf90af",
+  "title": "AutoGraph: An intelligent knowledge-graph agent for procedure automation and dynamic human reliability support in high-risk industries"
+}

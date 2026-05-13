@@ -1,0 +1,46 @@
+{
+  "abstract": "We introduce Zep, a novel memory layer service for AI agents that outperforms the current state-of-the-art system, MemGPT, in the Deep Memory Retrieval (DMR) benchmark. Additionally, Zep excels in more comprehensive and challenging evaluations than DMR that better reflect real-world enterprise use cases. While existing retrieval-augmented generation (RAG) frameworks for large language model (LLM)-based agents are limited to static document retrieval, enterprise applications demand dynamic knowledge integration from diverse sources including ongoing conversations and business data. Zep addresses this fundamental limitation through its core component Graphiti -- a temporally-aware knowledge graph engine that dynamically synthesizes both unstructured conversational data and structured business data while maintaining historical relationships. In the DMR benchmark, which the MemGPT team established as their primary evaluation metric, Zep demonstrates superior performance (94.8% vs 93.4%). Beyond DMR, Zep's capabilities are further validated through the more challenging LongMemEval benchmark, which better reflects enterprise use cases through complex temporal reasoning tasks. In this evaluation, Zep achieves substantial results with accuracy improvements of up to 18.5% while simultaneously reducing response latency by 90% compared to baseline implementations. These results are particularly pronounced in enterprise-critical tasks such as cross-session information synthesis and long-term context maintenance, demonstrating Zep's effectiveness for deployment in real-world applications.",
+  "authors": [
+    {
+      "authorId": "2342284826",
+      "name": "P. Rasmussen"
+    },
+    {
+      "authorId": "2342283168",
+      "name": "Pavlo Paliychuk"
+    },
+    {
+      "authorId": "2342283196",
+      "name": "Travis Beauvais"
+    },
+    {
+      "authorId": "2004576551",
+      "name": "Jack Ryan"
+    },
+    {
+      "authorId": "2342283142",
+      "name": "Daniel Chalef"
+    }
+  ],
+  "citationCount": 143,
+  "externalIds": {
+    "ArXiv": "2501.13956",
+    "CorpusId": 275907122,
+    "DBLP": "journals/corr/abs-2501-13956",
+    "DOI": "10.48550/arXiv.2501.13956"
+  },
+  "influentialCitationCount": 22,
+  "openAccessPdf": {
+    "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2501.13956, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use.",
+    "license": null,
+    "status": null,
+    "url": ""
+  },
+  "paperId": "12407be490a4e4633da7f25a93af000be573a288",
+  "publicationDate": "2025-01-20",
+  "referenceCount": 17,
+  "title": "Zep: A Temporal Knowledge Graph Architecture for Agent Memory",
+  "url": "https://www.semanticscholar.org/paper/12407be490a4e4633da7f25a93af000be573a288",
+  "venue": "arXiv.org",
+  "year": 2025
+}

@@ -1,0 +1,51 @@
+{
+  "abstract": "Scientific research increasingly relies on specialized computational tools, yet effectively utilizing these tools requires substantial domain expertise. While large language models show promise in tool automation, they struggle to seamlessly integrate and orchestrate multiple tools for complex scientific workflows. Here we present SciToolAgent, a large language model-powered agent that automates hundreds of scientific tools across biology, chemistry and materials science. At its core, SciToolAgent leverages a scientific tool knowledge graph that enables intelligent tool selection and execution through graph-based retrieval-augmented generation. The agent also incorporates a comprehensive safety-checking module to ensure responsible and ethical tool usage. Extensive evaluations on a curated benchmark demonstrate that SciToolAgent outperforms existing approaches. Case studies in protein engineering, chemical reactivity prediction, chemical synthesis and metal\u2013organic framework screening further demonstrate SciToolAgent\u2019s capability to automate complex scientific workflows, making advanced research tools accessible to both experts and nonexperts. This study presents SciToolAgent, a large language model-based agent that orchestrates scientific tools via a knowledge graph, enabling automated and effective execution of scientific research workflows.",
+  "authors": [
+    {
+      "authorId": "2254282405",
+      "name": "Keyan Ding"
+    },
+    {
+      "authorId": "2281881162",
+      "name": "Jing Yu"
+    },
+    {
+      "authorId": "2374221891",
+      "name": "Junjie Huang"
+    },
+    {
+      "authorId": "2256583151",
+      "name": "Yuchen Yang"
+    },
+    {
+      "authorId": "2254277130",
+      "name": "Qiang Zhang"
+    },
+    {
+      "authorId": "2254343747",
+      "name": "Huajun Chen"
+    }
+  ],
+  "citationCount": 41,
+  "externalIds": {
+    "ArXiv": "2507.20280",
+    "CorpusId": 280323347,
+    "DBLP": "journals/ncs/DingYHYZC25",
+    "DOI": "10.1038/s43588-025-00849-y",
+    "PubMed": "40835791"
+  },
+  "influentialCitationCount": 3,
+  "openAccessPdf": {
+    "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2507.20280, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use.",
+    "license": null,
+    "status": null,
+    "url": ""
+  },
+  "paperId": "804b5775524552b27d5ffd6a3ab82d0f5c5f1011",
+  "publicationDate": "2025-07-27",
+  "referenceCount": 46,
+  "title": "SciToolAgent: a knowledge-graph-driven scientific agent for multitool integration",
+  "url": "https://www.semanticscholar.org/paper/804b5775524552b27d5ffd6a3ab82d0f5c5f1011",
+  "venue": "Nature Computational Science",
+  "year": 2025
+}
