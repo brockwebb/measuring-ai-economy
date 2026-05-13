@@ -135,3 +135,14 @@ zenodo:
     - "control systems PID"
     - "symbolic AI knowledge graph"
   tier_2_terms: []
+
+url_drain:
+  fetcher: harvester.fetchers.url_drain.UrlDrainFetcher
+  etl: harvester.etl.url_drain.UrlDrainETL
+  inbox_backpressure_max: 5000
+  daily_cost_ceiling_usd: 5.00
+  expected_schema_version: 9
+  triage_enabled: true
+  citation_chain_enabled: false
+  triage_threshold: 0.4
+  triage_model: "claude-sonnet-4-6"
