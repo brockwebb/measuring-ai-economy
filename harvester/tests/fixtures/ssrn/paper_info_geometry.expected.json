@@ -1,0 +1,40 @@
+{
+  "published_date": "2026-03-22",
+  "rows": [
+    {
+      "data": {
+        "authors": "[{\"name\": \"Alice Smith\"}]",
+        "document_type": "ssrn_paper",
+        "doi": null,
+        "payload": "{\"ssrn_id\": 2345678, \"jel_codes\": [\"C14\", \"C44\"], \"institution\": null, \"byte_size\": 415}",
+        "published_date": "2026-03-22",
+        "raw_hash": "sha256:test",
+        "source_id": "ssrn",
+        "source_url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2345678",
+        "title": "Information Geometry of Diffusion Processes"
+      },
+      "target_table": "harvest.document_metadata"
+    },
+    {
+      "data": {
+        "abstract": "This paper develops the information-geometric structure underlying diffusion processes on Riemannian manifolds. We connect the Fisher-Rao metric to score-based generative models.",
+        "authors": "[{\"name\": \"Alice Smith\"}]",
+        "byte_size": 415,
+        "doi": null,
+        "institution": null,
+        "jel_codes": [
+          "C14",
+          "C44"
+        ],
+        "publication_date": "2026-03-22",
+        "raw_hash": "sha256:test",
+        "ssrn_id": 2345678,
+        "ssrn_url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2345678",
+        "title": "Information Geometry of Diffusion Processes"
+      },
+      "target_table": "harvest.ssrn_records"
+    }
+  ],
+  "source_url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2345678",
+  "title": "Information Geometry of Diffusion Processes"
+}

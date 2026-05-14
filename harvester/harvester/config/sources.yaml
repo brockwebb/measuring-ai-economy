@@ -175,3 +175,10 @@ pubmed:
     - "working dog learning"
     - "operant conditioning canine"
   tier_2_terms: []
+
+# SSRN was migrated but disabled 2026-05-14 — Cloudflare WAF blocks crawl4ai;
+# cloudscraper also failed (returns 403 challenge page). See
+# docs/superpowers/notes/ssrn-blocked.md for the full attempt + bypass ideas.
+# The fetcher (harvester.fetchers.ssrn.SsrnFetcher), ETL
+# (harvester.etl.ssrn.SsrnETL), and migration 011 are still in code, dormant.
+# To re-enable when a bypass emerges, restore the ssrn: block here.
