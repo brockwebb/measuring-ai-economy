@@ -219,8 +219,8 @@ def run(
     total = 0
     for term in (terms or [None]):
         q: dict[str, Any] = {
-            "per_page": 100,
-            "max_pages": 10,
+            "per_page": int(cfg.get("per_page", 100)),
+            "max_pages": int(cfg.get("max_pages", 10)),
         }
         if source == "federal_register":
             q.update({
