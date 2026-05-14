@@ -146,3 +146,28 @@ url_drain:
   citation_chain_enabled: false
   triage_threshold: 0.4
   triage_model: "claude-sonnet-4-6"
+
+pubmed:
+  fetcher: harvester.fetchers.pubmed.PubMedFetcher
+  etl: harvester.etl.pubmed.PubMedETL
+  rolling_window_days: 30
+  inbox_backpressure_max: 5000
+  daily_cost_ceiling_usd: 2.00
+  expected_schema_version: 10
+  triage_enabled: true
+  citation_chain_enabled: true
+  triage_threshold: 0.4
+  triage_model: "claude-sonnet-4-6"
+  scout_base_url: "https://pubmed.ncbi.nlm.nih.gov"
+  tier_1_terms:
+    - "canine cognition"
+    - "dog behavior training"
+    - "BJJ injury prevention"
+    - "MMA biomechanics injury"
+    - "strength training hypertrophy meta-analysis"
+    - "exercise physiology performance"
+    - "flow state athletes neural correlates"
+    - "psychological resilience grit"
+    - "working dog learning"
+    - "operant conditioning canine"
+  tier_2_terms: []

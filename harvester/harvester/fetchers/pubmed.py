@@ -24,6 +24,13 @@ class PubMedFetcher(McpFetcher):
     source_id = "pubmed"
     mcp_tool = "mcp__claude_ai_PubMed__search_articles"
 
+    # Hard cap on max_results: each MCP call = one claude -p subprocess +
+    # one PubMed search + triage on every returned paper. 10 papers per term
+    # × 10 terms = 100/night, comfortably under the daily cost ceiling. The
+    # CLI passes per_page=100 by default; we cap aggressively so the cost
+    # model holds regardless of CLI tuning.
+    _MAX_RESULTS_CAP = 10
+
     def rate_limit_spec(self) -> RateLimit:
         # MCP calls go through `claude -p` subprocess. Each call is heavy
         # (Claude inference + tool dispatch) — pace conservatively.
@@ -36,7 +43,7 @@ class PubMedFetcher(McpFetcher):
     def args_for_query(self, query: dict[str, Any]) -> dict[str, Any]:
         return {
             "query": query.get("keyword", ""),
-            "max_results": int(query.get("per_page", 10)),
+            "max_results": min(int(query.get("per_page", 10)), self._MAX_RESULTS_CAP),
         }
 
     def items_from_response(self, response: dict[str, Any]) -> Iterable[dict[str, Any]]:

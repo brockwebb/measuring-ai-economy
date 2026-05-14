@@ -43,6 +43,14 @@ def test_pubmed_fetcher_args_for_query_defaults_max_results():
     assert args["max_results"] == 10
 
 
+def test_pubmed_fetcher_args_for_query_caps_max_results_at_10():
+    """The CLI defaults per_page to 100. PubMed caps aggressively to keep
+    cost-per-night bounded (each result = 1 paper × triage call)."""
+    f = PubMedFetcher.__new__(PubMedFetcher)
+    args = f.args_for_query({"keyword": "test", "per_page": 100})
+    assert args["max_results"] == 10
+
+
 def test_pubmed_fetcher_items_from_response_extracts_results_list():
     f = PubMedFetcher.__new__(PubMedFetcher)
     response = json.loads(_FIXTURE.read_text())
