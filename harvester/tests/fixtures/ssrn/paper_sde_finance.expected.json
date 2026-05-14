@@ -1,0 +1,41 @@
+{
+  "published_date": "2026-04-15",
+  "rows": [
+    {
+      "data": {
+        "authors": "[{\"name\": \"Jane Researcher\", \"affiliation\": \"Wharton School\"}, {\"name\": \"John Coauthor\"}]",
+        "document_type": "ssrn_paper",
+        "doi": "10.2139/ssrn.1234567",
+        "payload": "{\"ssrn_id\": 1234567, \"jel_codes\": [\"C58\", \"G12\", \"G13\"], \"institution\": \"Wharton School\", \"byte_size\": 494}",
+        "published_date": "2026-04-15",
+        "raw_hash": "sha256:test",
+        "source_id": "ssrn",
+        "source_url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1234567",
+        "title": "Stochastic Differential Equations in Finance: A Survey"
+      },
+      "target_table": "harvest.document_metadata"
+    },
+    {
+      "data": {
+        "abstract": "We survey applications of stochastic differential equations to financial modeling, covering It\u00f4 calculus, Black-Scholes, and recent extensions to rough volatility models.",
+        "authors": "[{\"name\": \"Jane Researcher\", \"affiliation\": \"Wharton School\"}, {\"name\": \"John Coauthor\"}]",
+        "byte_size": 494,
+        "doi": "10.2139/ssrn.1234567",
+        "institution": "Wharton School",
+        "jel_codes": [
+          "C58",
+          "G12",
+          "G13"
+        ],
+        "publication_date": "2026-04-15",
+        "raw_hash": "sha256:test",
+        "ssrn_id": 1234567,
+        "ssrn_url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1234567",
+        "title": "Stochastic Differential Equations in Finance: A Survey"
+      },
+      "target_table": "harvest.ssrn_records"
+    }
+  ],
+  "source_url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1234567",
+  "title": "Stochastic Differential Equations in Finance: A Survey"
+}

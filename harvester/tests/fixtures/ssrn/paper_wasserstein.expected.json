@@ -1,0 +1,37 @@
+{
+  "published_date": "2026-02-10",
+  "rows": [
+    {
+      "data": {
+        "authors": "[{\"name\": \"Bob Jones\"}, {\"name\": \"Carol Lee\"}]",
+        "document_type": "ssrn_paper",
+        "doi": null,
+        "payload": "{\"ssrn_id\": 3456789, \"jel_codes\": [], \"institution\": null, \"byte_size\": 332}",
+        "published_date": "2026-02-10",
+        "raw_hash": "sha256:test",
+        "source_id": "ssrn",
+        "source_url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3456789",
+        "title": "Wasserstein Distance and Robust Portfolio Optimization"
+      },
+      "target_table": "harvest.document_metadata"
+    },
+    {
+      "data": {
+        "abstract": "We apply Wasserstein distributionally robust optimization to mean-variance portfolio selection.",
+        "authors": "[{\"name\": \"Bob Jones\"}, {\"name\": \"Carol Lee\"}]",
+        "byte_size": 332,
+        "doi": null,
+        "institution": null,
+        "jel_codes": [],
+        "publication_date": "2026-02-10",
+        "raw_hash": "sha256:test",
+        "ssrn_id": 3456789,
+        "ssrn_url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3456789",
+        "title": "Wasserstein Distance and Robust Portfolio Optimization"
+      },
+      "target_table": "harvest.ssrn_records"
+    }
+  ],
+  "source_url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3456789",
+  "title": "Wasserstein Distance and Robust Portfolio Optimization"
+}
