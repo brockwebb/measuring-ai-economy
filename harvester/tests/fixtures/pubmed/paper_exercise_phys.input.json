@@ -1,0 +1,15 @@
+{
+  "pmid": "37009999",
+  "title": "Hypertrophy responses to high-load vs low-load resistance training: meta-analysis",
+  "abstract": "We pooled 67 studies (n=2,341) comparing >70% 1RM vs <50% 1RM protocols with matched volume. Hypertrophy effects converge when volume is equated; strength gains favor high-load.",
+  "authors": [
+    {"name": "Schoenfeld, B", "affiliation": "Lehman College CUNY"},
+    {"name": "Grgic, J"}
+  ],
+  "journal": "Sports Medicine",
+  "publication_date": "2026-04-01",
+  "doi": "10.1007/s40279-026-01999-9",
+  "pmcid": "PMC11111111",
+  "mesh_terms": ["Resistance Training", "Hypertrophy", "Muscle Strength"],
+  "url": "https://pubmed.ncbi.nlm.nih.gov/37009999/"
+}

@@ -1,0 +1,15 @@
+{
+  "pmid": "37001234",
+  "title": "Operant conditioning paradigms in domestic dogs: a systematic review",
+  "abstract": "We review 84 studies of operant conditioning protocols applied to canine learning, with emphasis on working dogs and behavioral plasticity.",
+  "authors": [
+    {"name": "Smith, J", "affiliation": "Tufts Cummings School"},
+    {"name": "Johnson, M", "affiliation": "University of Lincoln"}
+  ],
+  "journal": "Journal of Comparative Psychology",
+  "publication_date": "2026-03-15",
+  "doi": "10.1037/com0000999",
+  "pmcid": "PMC10000001",
+  "mesh_terms": ["Conditioning, Operant", "Dogs", "Learning", "Behavior, Animal"],
+  "url": "https://pubmed.ncbi.nlm.nih.gov/37001234/"
+}

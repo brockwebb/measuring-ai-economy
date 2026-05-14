@@ -22,9 +22,20 @@ _CLAUDE_BIN = os.environ.get("HARVESTER_CLAUDE_BIN", "claude")
 
 
 class McpFetcher(Fetcher):
-    """Subclasses set mcp_tool and implement args_for_query / items_from_response."""
+    """Subclasses set mcp_tool and implement args_for_query / items_from_response.
+
+    Class attributes:
+        mcp_tool: Primary MCP tool name (used in default prompt + provenance).
+        allowed_tools: All MCP tools this fetcher may invoke. Passed to
+            `--allowedTools` so the subprocess call doesn't hit the
+            interactive permission prompt. Defaults to [mcp_tool]; subclasses
+            that orchestrate multiple tools (e.g. search then get_metadata)
+            should override this.
+    """
 
     mcp_tool: str = ""
+    allowed_tools: list[str] = []  # empty → derived from mcp_tool at call time
+    subprocess_timeout: int = 120  # seconds; override for multi-step prompts
 
     @abstractmethod
     def args_for_query(self, query: dict[str, Any]) -> dict[str, Any]: ...
@@ -44,11 +55,16 @@ class McpFetcher(Fetcher):
         prompt = self._build_mcp_prompt(args)
         prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
 
+        tools = self.allowed_tools or ([self.mcp_tool] if self.mcp_tool else [])
+        cmd = [_CLAUDE_BIN, "-p", prompt, "--output-format", "json"]
+        if tools:
+            cmd += ["--allowedTools"] + tools
+
         proc = subprocess.run(
-            [_CLAUDE_BIN, "-p", prompt, "--output-format", "json"],
+            cmd,
             capture_output=True,
             text=True,
-            timeout=120,
+            timeout=self.subprocess_timeout,
         )
         if proc.returncode != 0:
             raise RuntimeError(f"MCP call failed (exit {proc.returncode}): {proc.stderr.strip()}")

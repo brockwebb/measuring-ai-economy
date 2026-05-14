@@ -1,0 +1,42 @@
+{
+  "published_date": "2026-01-12",
+  "rows": [
+    {
+      "data": {
+        "authors": "[{\"name\": \"Rodrigues, P\", \"affiliation\": \"S\\u00e3o Paulo Sports Medicine Institute\"}]",
+        "document_type": "pubmed_paper",
+        "doi": "10.1177/03635465261234567",
+        "payload": "{\"pmid\": \"37005678\", \"journal\": \"American Journal of Sports Medicine\", \"pmcid\": null, \"mesh_terms\": [\"Martial Arts\", \"Shoulder Injuries\", \"Athletic Injuries\"]}",
+        "published_date": "2026-01-12",
+        "raw_hash": "sha256:test",
+        "source_id": "pubmed",
+        "source_url": "https://pubmed.ncbi.nlm.nih.gov/37005678/",
+        "title": "Shoulder injury patterns in Brazilian jiu-jitsu: a 5-year retrospective"
+      },
+      "target_table": "harvest.document_metadata"
+    },
+    {
+      "data": {
+        "abstract": "We retrospectively analyzed 412 shoulder injuries from competitive BJJ athletes. Submission-related injuries account for 38% of cases, with the kimura position the leading vector.",
+        "authors": "[{\"name\": \"Rodrigues, P\", \"affiliation\": \"S\\u00e3o Paulo Sports Medicine Institute\"}]",
+        "doi": "10.1177/03635465261234567",
+        "journal": "American Journal of Sports Medicine",
+        "mesh_terms": [
+          "Martial Arts",
+          "Shoulder Injuries",
+          "Athletic Injuries"
+        ],
+        "pmc_full_text_url": null,
+        "pmcid": null,
+        "pmid": "37005678",
+        "publication_date": "2026-01-12",
+        "pubmed_url": "https://pubmed.ncbi.nlm.nih.gov/37005678/",
+        "raw_hash": "sha256:test",
+        "title": "Shoulder injury patterns in Brazilian jiu-jitsu: a 5-year retrospective"
+      },
+      "target_table": "harvest.pubmed_papers"
+    }
+  ],
+  "source_url": "https://pubmed.ncbi.nlm.nih.gov/37005678/",
+  "title": "Shoulder injury patterns in Brazilian jiu-jitsu: a 5-year retrospective"
+}
