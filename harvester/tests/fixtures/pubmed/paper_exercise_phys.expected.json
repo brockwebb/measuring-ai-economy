@@ -1,0 +1,42 @@
+{
+  "published_date": "2026-04-01",
+  "rows": [
+    {
+      "data": {
+        "authors": "[{\"name\": \"Schoenfeld, B\", \"affiliation\": \"Lehman College CUNY\"}, {\"name\": \"Grgic, J\"}]",
+        "document_type": "pubmed_paper",
+        "doi": "10.1007/s40279-026-01999-9",
+        "payload": "{\"pmid\": \"37009999\", \"journal\": \"Sports Medicine\", \"pmcid\": \"PMC11111111\", \"mesh_terms\": [\"Resistance Training\", \"Hypertrophy\", \"Muscle Strength\"]}",
+        "published_date": "2026-04-01",
+        "raw_hash": "sha256:test",
+        "source_id": "pubmed",
+        "source_url": "https://pubmed.ncbi.nlm.nih.gov/37009999/",
+        "title": "Hypertrophy responses to high-load vs low-load resistance training: meta-analysis"
+      },
+      "target_table": "harvest.document_metadata"
+    },
+    {
+      "data": {
+        "abstract": "We pooled 67 studies (n=2,341) comparing >70% 1RM vs <50% 1RM protocols with matched volume. Hypertrophy effects converge when volume is equated; strength gains favor high-load.",
+        "authors": "[{\"name\": \"Schoenfeld, B\", \"affiliation\": \"Lehman College CUNY\"}, {\"name\": \"Grgic, J\"}]",
+        "doi": "10.1007/s40279-026-01999-9",
+        "journal": "Sports Medicine",
+        "mesh_terms": [
+          "Resistance Training",
+          "Hypertrophy",
+          "Muscle Strength"
+        ],
+        "pmc_full_text_url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11111111/",
+        "pmcid": "PMC11111111",
+        "pmid": "37009999",
+        "publication_date": "2026-04-01",
+        "pubmed_url": "https://pubmed.ncbi.nlm.nih.gov/37009999/",
+        "raw_hash": "sha256:test",
+        "title": "Hypertrophy responses to high-load vs low-load resistance training: meta-analysis"
+      },
+      "target_table": "harvest.pubmed_papers"
+    }
+  ],
+  "source_url": "https://pubmed.ncbi.nlm.nih.gov/37009999/",
+  "title": "Hypertrophy responses to high-load vs low-load resistance training: meta-analysis"
+}

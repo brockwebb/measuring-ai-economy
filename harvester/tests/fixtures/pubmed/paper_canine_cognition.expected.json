@@ -1,0 +1,43 @@
+{
+  "published_date": "2026-03-15",
+  "rows": [
+    {
+      "data": {
+        "authors": "[{\"name\": \"Smith, J\", \"affiliation\": \"Tufts Cummings School\"}, {\"name\": \"Johnson, M\", \"affiliation\": \"University of Lincoln\"}]",
+        "document_type": "pubmed_paper",
+        "doi": "10.1037/com0000999",
+        "payload": "{\"pmid\": \"37001234\", \"journal\": \"Journal of Comparative Psychology\", \"pmcid\": \"PMC10000001\", \"mesh_terms\": [\"Conditioning, Operant\", \"Dogs\", \"Learning\", \"Behavior, Animal\"]}",
+        "published_date": "2026-03-15",
+        "raw_hash": "sha256:test",
+        "source_id": "pubmed",
+        "source_url": "https://pubmed.ncbi.nlm.nih.gov/37001234/",
+        "title": "Operant conditioning paradigms in domestic dogs: a systematic review"
+      },
+      "target_table": "harvest.document_metadata"
+    },
+    {
+      "data": {
+        "abstract": "We review 84 studies of operant conditioning protocols applied to canine learning, with emphasis on working dogs and behavioral plasticity.",
+        "authors": "[{\"name\": \"Smith, J\", \"affiliation\": \"Tufts Cummings School\"}, {\"name\": \"Johnson, M\", \"affiliation\": \"University of Lincoln\"}]",
+        "doi": "10.1037/com0000999",
+        "journal": "Journal of Comparative Psychology",
+        "mesh_terms": [
+          "Conditioning, Operant",
+          "Dogs",
+          "Learning",
+          "Behavior, Animal"
+        ],
+        "pmc_full_text_url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10000001/",
+        "pmcid": "PMC10000001",
+        "pmid": "37001234",
+        "publication_date": "2026-03-15",
+        "pubmed_url": "https://pubmed.ncbi.nlm.nih.gov/37001234/",
+        "raw_hash": "sha256:test",
+        "title": "Operant conditioning paradigms in domestic dogs: a systematic review"
+      },
+      "target_table": "harvest.pubmed_papers"
+    }
+  ],
+  "source_url": "https://pubmed.ncbi.nlm.nih.gov/37001234/",
+  "title": "Operant conditioning paradigms in domestic dogs: a systematic review"
+}

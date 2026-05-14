@@ -1,0 +1,42 @@
+{
+  "published_date": "2026-02-28",
+  "rows": [
+    {
+      "data": {
+        "authors": "[{\"name\": \"Anderson, K\"}, {\"name\": \"Tan, L\"}]",
+        "document_type": "pubmed_paper",
+        "doi": null,
+        "payload": "{\"pmid\": \"37011111\", \"journal\": \"Journal of Sport and Exercise Psychology\", \"pmcid\": null, \"mesh_terms\": [\"Athletic Performance\", \"Flow State\", \"Magnetic Resonance Imaging\"]}",
+        "published_date": "2026-02-28",
+        "raw_hash": "sha256:test",
+        "source_id": "pubmed",
+        "source_url": "https://pubmed.ncbi.nlm.nih.gov/37011111/",
+        "title": "Neural correlates of flow state in elite athletes during high-pressure performance"
+      },
+      "target_table": "harvest.document_metadata"
+    },
+    {
+      "data": {
+        "abstract": "fMRI during a high-pressure perceptual-motor task revealed reduced default mode network activity and elevated dorsolateral prefrontal engagement in flow-state reports.",
+        "authors": "[{\"name\": \"Anderson, K\"}, {\"name\": \"Tan, L\"}]",
+        "doi": null,
+        "journal": "Journal of Sport and Exercise Psychology",
+        "mesh_terms": [
+          "Athletic Performance",
+          "Flow State",
+          "Magnetic Resonance Imaging"
+        ],
+        "pmc_full_text_url": null,
+        "pmcid": null,
+        "pmid": "37011111",
+        "publication_date": "2026-02-28",
+        "pubmed_url": "https://pubmed.ncbi.nlm.nih.gov/37011111/",
+        "raw_hash": "sha256:test",
+        "title": "Neural correlates of flow state in elite athletes during high-pressure performance"
+      },
+      "target_table": "harvest.pubmed_papers"
+    }
+  ],
+  "source_url": "https://pubmed.ncbi.nlm.nih.gov/37011111/",
+  "title": "Neural correlates of flow state in elite athletes during high-pressure performance"
+}
