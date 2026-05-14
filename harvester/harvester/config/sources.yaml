@@ -113,6 +113,8 @@ zenodo:
   triage_threshold: 0.4
   triage_model: "claude-sonnet-4-6"
   scout_base_url: "https://zenodo.org"
+  per_page: 25                # Zenodo's unauthenticated API caps at 25 per page (returns 400 above)
+  max_pages: 4                # 25 * 4 = 100 max per term per run
   tier_1_terms:
     - "stochastic differential equations"
     - "diffusion model"
@@ -159,6 +161,8 @@ pubmed:
   triage_threshold: 0.4
   triage_model: "claude-sonnet-4-6"
   scout_base_url: "https://pubmed.ncbi.nlm.nih.gov"
+  per_page: 5                 # 5 papers/term * 10 terms = 50/night max; matches PubMedFetcher._MAX_RESULTS_CAP
+  max_pages: 1                # McpFetcher doesn't paginate; this is informational
   tier_1_terms:
     - "canine cognition"
     - "dog behavior training"
