@@ -175,3 +175,28 @@ pubmed:
     - "working dog learning"
     - "operant conditioning canine"
   tier_2_terms: []
+
+ssrn:
+  fetcher: harvester.fetchers.ssrn.SsrnFetcher
+  etl: harvester.etl.ssrn.SsrnETL
+  rolling_window_days: 30
+  inbox_backpressure_max: 5000
+  daily_cost_ceiling_usd: 1.00
+  expected_schema_version: 11
+  triage_enabled: true
+  citation_chain_enabled: true
+  triage_threshold: 0.4
+  triage_model: "claude-sonnet-4-6"
+  scout_base_url: "https://papers.ssrn.com"
+  per_page: 10
+  max_pages: 1
+  tier_1_terms:
+    - "stochastic differential equations finance"
+    - "information geometry econometrics"
+    - "Wasserstein distance portfolio optimization"
+    - "rough volatility models"
+    - "score-based generative model finance"
+    - "uncertainty quantification economics"
+    - "Fokker-Planck financial mathematics"
+    - "neural SDE option pricing"
+  tier_2_terms: []
