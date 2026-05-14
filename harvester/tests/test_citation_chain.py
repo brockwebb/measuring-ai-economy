@@ -13,17 +13,57 @@ from datetime import date
 
 @pytest.fixture
 def clean_candidates():
+    """Wipe leftover test rows AND quarantine live 'proposed' candidates so
+    process_pending only operates on test-seeded rows.
+
+    process_pending selects `WHERE status='proposed'` with `LIMIT max_batch`
+    ordered by proposed_at — if live data has 10+ proposed rows, the seeded
+    test row never gets processed. We move live 'proposed' rows to 'rejected'
+    before the test (the schema's CHECK constraint only allows
+    {'proposed','approved','rejected','ingested'}, so we use one of the
+    allowed statuses as a sentinel), then restore at teardown.
+    """
+    def _clean(conn):
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM harvest.expansion_candidates "
+                        "WHERE payload->>'origin' = 'citation_chain_test'")
+        conn.commit()
+
+    def _quarantine_live_proposed(conn):
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE harvest.expansion_candidates
+                SET status = 'rejected'
+                WHERE status = 'proposed'
+                  AND (payload->>'origin' IS NULL
+                       OR payload->>'origin' != 'citation_chain_test')
+                RETURNING id
+                """,
+            )
+            return [r[0] for r in cur.fetchall()]
+
+    def _restore_quarantine(conn, ids):
+        if not ids:
+            return
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE harvest.expansion_candidates SET status = 'proposed' "
+                "WHERE id = ANY(%s) AND status = 'rejected'",
+                (ids,),
+            )
+        conn.commit()
+
     conn = get_connection()
     try:
-        with conn.cursor() as cur:
-            cur.execute("DELETE FROM harvest.expansion_candidates "
-                        "WHERE payload->>'origin' = 'citation_chain_test'")
+        _clean(conn)
+        quarantined = _quarantine_live_proposed(conn)
         conn.commit()
-        yield
-        with conn.cursor() as cur:
-            cur.execute("DELETE FROM harvest.expansion_candidates "
-                        "WHERE payload->>'origin' = 'citation_chain_test'")
-        conn.commit()
+        try:
+            yield
+        finally:
+            _restore_quarantine(conn, quarantined)
+            _clean(conn)
     finally:
         conn.close()
 
