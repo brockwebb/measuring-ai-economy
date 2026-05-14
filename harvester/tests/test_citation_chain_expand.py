@@ -14,13 +14,20 @@ from harvester.improvement.citation_chain import CitationChain
 _TEST_DOI_PREFIX = "10.9999/expand_test"
 
 
+_QUARANTINE_SENTINEL = "1970-01-01 00:00:00+00"
+
+
 @pytest.fixture
 def clean_expand_candidates():
-    """Wipe any leftover test rows before AND after each test.
+    """Wipe leftover test rows AND quarantine live approved-pending parents
+    so the helper only operates on our seeded test data.
 
-    Depth-2 rows reference depth-1 via parent_candidate_id (ON DELETE SET NULL),
-    so we don't need a strict ordering — but we delete children first anyway
-    so the parent_candidate_id chain stays clean for assertions.
+    expand_approved() picks up any approved candidate without expanded_at —
+    including rows from concurrent live harvester runs. We stamp those with
+    a sentinel expanded_at so the helper skips them, run the test, then
+    restore them at teardown. The sentinel `1970-01-01` lets us identify
+    exactly which rows we quarantined (avoiding races with rows the helper
+    legitimately expanded during the test).
     """
     def _clean(conn):
         with conn.cursor() as cur:
@@ -31,11 +38,46 @@ def clean_expand_candidates():
             )
         conn.commit()
 
+    def _quarantine_live_pending(conn):
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE harvest.expansion_candidates
+                SET expanded_at = %s::timestamptz
+                WHERE status = 'approved'
+                  AND expanded_at IS NULL
+                  AND (payload->>'doi' IS NULL
+                       OR payload->>'doi' NOT LIKE %s)
+                RETURNING id
+                """,
+                (_QUARANTINE_SENTINEL, f"{_TEST_DOI_PREFIX}%"),
+            )
+            return [r[0] for r in cur.fetchall()]
+
+    def _restore_quarantine(conn, ids):
+        if not ids:
+            return
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE harvest.expansion_candidates
+                SET expanded_at = NULL
+                WHERE id = ANY(%s) AND expanded_at = %s::timestamptz
+                """,
+                (ids, _QUARANTINE_SENTINEL),
+            )
+        conn.commit()
+
     conn = get_connection()
     try:
         _clean(conn)
-        yield
-        _clean(conn)
+        quarantined = _quarantine_live_pending(conn)
+        conn.commit()
+        try:
+            yield
+        finally:
+            _restore_quarantine(conn, quarantined)
+            _clean(conn)
     finally:
         conn.close()
 
