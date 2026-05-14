@@ -1,0 +1,33 @@
+{
+  "results": [
+    {
+      "pmid": "37001234",
+      "title": "Operant conditioning paradigms in domestic dogs: a systematic review",
+      "abstract": "We review 84 studies of operant conditioning protocols applied to canine learning, with emphasis on working dogs and behavioral plasticity. Results suggest a robust effect of variable-ratio reinforcement on retention.",
+      "authors": [
+        {"name": "Smith, J", "affiliation": "Tufts Cummings School"},
+        {"name": "Johnson, M", "affiliation": "University of Lincoln"}
+      ],
+      "journal": "Journal of Comparative Psychology",
+      "publication_date": "2026-03-15",
+      "doi": "10.1037/com0000999",
+      "pmcid": "PMC10000001",
+      "mesh_terms": ["Conditioning, Operant", "Dogs", "Learning", "Behavior, Animal"],
+      "url": "https://pubmed.ncbi.nlm.nih.gov/37001234/"
+    },
+    {
+      "pmid": "37001235",
+      "title": "Canine cognition: episodic-like memory revisited",
+      "abstract": "We replicate Fugazza et al. with a larger sample (n=42) and find consistent evidence for episodic-like memory in dogs across breeds.",
+      "authors": [
+        {"name": "Garcia, R", "affiliation": "Eotvos Lorand University"}
+      ],
+      "journal": "Animal Cognition",
+      "publication_date": "2026-02-20",
+      "doi": "10.1007/s10071-026-0123-4",
+      "pmcid": null,
+      "mesh_terms": ["Memory, Episodic", "Dogs", "Cognition"],
+      "url": "https://pubmed.ncbi.nlm.nih.gov/37001235/"
+    }
+  ]
+}
