@@ -23,7 +23,7 @@ from harvester.fetchers.base import Fetcher
 from harvester.types import RateLimit, RawPayload
 
 
-_BASE_URL = "http://export.arxiv.org/api/query"
+_BASE_URL = "https://export.arxiv.org/api/query"
 _DEFAULT_PER_PAGE = 50
 _DEFAULT_MAX_PAGES = 5
 _USER_AGENT = "WintermuteHarvester/0.1 (research; brockwebb45@gmail.com)"
@@ -61,7 +61,11 @@ class ArxivFetcher(Fetcher):
         per_page = int(query.get("per_page", _DEFAULT_PER_PAGE))
         max_pages = int(query.get("max_pages", _DEFAULT_MAX_PAGES))
 
-        with httpx.Client(headers={"User-Agent": _USER_AGENT}, timeout=30) as client:
+        with httpx.Client(
+            headers={"User-Agent": _USER_AGENT},
+            timeout=30,
+            follow_redirects=True,
+        ) as client:
             for page in range(max_pages):
                 self._pace()
                 params = self._build_params(query, page=page, per_page=per_page)

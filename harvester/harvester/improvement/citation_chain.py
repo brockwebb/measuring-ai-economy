@@ -116,44 +116,52 @@ class CitationChain:
                 deferred += 1
                 continue
 
-            # 1. Verify via Semantic Scholar
-            ss_paper = ss_fetcher.get_paper(f"DOI:{doi}")
-            if ss_paper is None:
+            try:
+                # 1. Verify via Semantic Scholar
+                ss_paper = ss_fetcher.get_paper(f"DOI:{doi}")
+                if ss_paper is None:
+                    deferred += 1
+                    continue
+
+                # 2. Score via LlmTriage
+                title = ss_paper.get("title") or payload.get("title") or ""
+                abstract = ss_paper.get("abstract") or ""
+                parsed = ParsedDoc(
+                    title=title,
+                    source_url=f"https://www.semanticscholar.org/paper/{ss_paper.get('paperId', '')}",
+                    published_date=_date.today(),
+                    rows=[],
+                    metadata={"abstract": abstract},
+                )
+                tr = triage.score(parsed)
+
+                # 3. Promote or reject
+                new_status = "approved" if tr.score >= threshold else "rejected"
+                with self._conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        UPDATE harvest.expansion_candidates
+                        SET status = %s,
+                            score = %s,
+                            reviewed_at = now(),
+                            reviewed_by = %s
+                        WHERE id = %s
+                        """,
+                        (new_status, tr.score, f"citation_chain:{tr.model_id}", candidate_id),
+                    )
+                self._conn.commit()
+
+                if new_status == "approved":
+                    approved += 1
+                else:
+                    rejected += 1
+            except Exception:
+                # Per-candidate isolation: a single SS error, subprocess.TimeoutExpired
+                # from a hung Claude triage, or any other transient must NOT take down
+                # the whole batch. Leave the row as 'proposed' for retry.
+                self._conn.rollback()
                 deferred += 1
                 continue
-
-            # 2. Score via LlmTriage
-            title = ss_paper.get("title") or payload.get("title") or ""
-            abstract = ss_paper.get("abstract") or ""
-            parsed = ParsedDoc(
-                title=title,
-                source_url=f"https://www.semanticscholar.org/paper/{ss_paper.get('paperId', '')}",
-                published_date=_date.today(),
-                rows=[],
-                metadata={"abstract": abstract},
-            )
-            tr = triage.score(parsed)
-
-            # 3. Promote or reject
-            new_status = "approved" if tr.score >= threshold else "rejected"
-            with self._conn.cursor() as cur:
-                cur.execute(
-                    """
-                    UPDATE harvest.expansion_candidates
-                    SET status = %s,
-                        score = %s,
-                        reviewed_at = now(),
-                        reviewed_by = %s
-                    WHERE id = %s
-                    """,
-                    (new_status, tr.score, f"citation_chain:{tr.model_id}", candidate_id),
-                )
-            self._conn.commit()
-
-            if new_status == "approved":
-                approved += 1
-            else:
-                rejected += 1
 
         return {"approved": approved, "rejected": rejected, "deferred": deferred}
 
