@@ -288,3 +288,71 @@ def test_process_pending_skips_when_paper_not_found(clean_candidates):
         mock_triage.score.assert_not_called()
     finally:
         conn.close()
+
+
+def test_process_pending_defers_on_triage_timeout(clean_candidates):
+    """Triage subprocess raises (e.g. TimeoutExpired from a hung Claude call) →
+    that candidate is deferred, batch continues, next candidate is processed.
+    Regression: 2026-05-14 the 500-candidate adhoc drain died on the first
+    120s Claude triage timeout because the exception escaped the batch loop.
+    """
+    import subprocess
+
+    conn = get_connection()
+    try:
+        # Seed two proposed candidates. First will raise on triage; second
+        # must still get processed.
+        dois = ["10.9999/cc_test.hang1", "10.9999/cc_test.hang2"]
+        with conn.cursor() as cur:
+            for doi in dois:
+                cur.execute(
+                    """
+                    INSERT INTO harvest.expansion_candidates
+                        (kind, payload, depth, status)
+                    VALUES ('paper', %s::jsonb, 1, 'proposed')
+                    """,
+                    (json.dumps({"doi": doi, "origin": "citation_chain_test"}),),
+                )
+        conn.commit()
+
+        mock_ss = MagicMock()
+        mock_ss.get_paper.return_value = {
+            "paperId": "ssid",
+            "title": "Real Paper",
+            "abstract": "abs",
+        }
+
+        mock_triage = MagicMock()
+        good_result = MagicMock()
+        good_result.score = 0.9
+        good_result.model_id = "claude-sonnet-4-6"
+        mock_triage.score.side_effect = [
+            subprocess.TimeoutExpired(cmd=["claude"], timeout=120),
+            good_result,
+        ]
+
+        chain = CitationChain(conn)
+        result = chain.process_pending(
+            max_batch=10,
+            ss_fetcher=mock_ss,
+            triage=mock_triage,
+            threshold=0.4,
+        )
+
+        assert result["deferred"] >= 1
+        assert result["approved"] == 1
+
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT payload->>'doi', status FROM harvest.expansion_candidates "
+                "WHERE payload->>'origin' = 'citation_chain_test' "
+                "ORDER BY payload->>'doi'"
+            )
+            rows = dict(cur.fetchall())
+
+        # First DOI: triage timed out → stays proposed for retry
+        assert rows[dois[0]] == "proposed"
+        # Second DOI: triage succeeded → promoted to approved
+        assert rows[dois[1]] == "approved"
+    finally:
+        conn.close()

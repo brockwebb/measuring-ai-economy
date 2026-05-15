@@ -15,7 +15,7 @@ def test_arxiv_fetcher_yields_one_per_entry(tmp_path, httpx_mock):
     feed = (FIXTURE_DIR / "api_page_1.xml").read_text()
     httpx_mock.add_response(
         method="GET",
-        url=re.compile(r"^http://export\.arxiv\.org/api/query.*"),
+        url=re.compile(r"^https://export\.arxiv\.org/api/query.*"),
         text=feed,
         is_reusable=True,
     )
@@ -38,7 +38,7 @@ def test_arxiv_fetcher_respects_seen(tmp_path, httpx_mock):
     feed = (FIXTURE_DIR / "api_page_1.xml").read_text()
     httpx_mock.add_response(
         method="GET",
-        url=re.compile(r"^http://export\.arxiv\.org/api/query.*"),
+        url=re.compile(r"^https://export\.arxiv\.org/api/query.*"),
         text=feed,
         is_reusable=True,
     )
