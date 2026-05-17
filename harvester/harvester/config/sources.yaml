@@ -9,7 +9,7 @@ federal_register:
   # Threshold for staging/YYYY-MM/ — run pauses if exceeded. Bumped from 500
   # to 5000 because output now lands directly in staging (no drain step) and
   # the initial backfill from a 60-day FR window already produced ~250 files.
-  inbox_backpressure_max: 5000
+  inbox_backpressure_max: 50000
   daily_cost_ceiling_usd: 0.00
   tier_1_terms:
     - "artificial intelligence"
@@ -37,7 +37,7 @@ arxiv:
   fetcher: harvester.fetchers.arxiv.ArxivFetcher
   etl: harvester.etl.arxiv.ArxivETL
   rolling_window_days: 30
-  inbox_backpressure_max: 5000
+  inbox_backpressure_max: 50000
   daily_cost_ceiling_usd: 5.00
   expected_schema_version: 5
   triage_enabled: true
@@ -84,7 +84,7 @@ semantic_scholar:
   fetcher: harvester.fetchers.semantic_scholar.SemanticScholarFetcher
   etl: harvester.etl.semantic_scholar.SemanticScholarETL
   rolling_window_days: 365   # search broad
-  inbox_backpressure_max: 5000
+  inbox_backpressure_max: 50000
   expected_schema_version: 6
   triage_enabled: true
   triage_threshold: 0.4
@@ -105,7 +105,7 @@ zenodo:
   fetcher: harvester.fetchers.zenodo.ZenodoFetcher
   etl: harvester.etl.zenodo.ZenodoETL
   rolling_window_days: 30
-  inbox_backpressure_max: 5000
+  inbox_backpressure_max: 50000
   daily_cost_ceiling_usd: 5.00
   expected_schema_version: 8
   triage_enabled: true
@@ -141,7 +141,7 @@ zenodo:
 url_drain:
   fetcher: harvester.fetchers.url_drain.UrlDrainFetcher
   etl: harvester.etl.url_drain.UrlDrainETL
-  inbox_backpressure_max: 5000
+  inbox_backpressure_max: 50000
   daily_cost_ceiling_usd: 5.00
   expected_schema_version: 9
   triage_enabled: true
@@ -153,7 +153,7 @@ pubmed:
   fetcher: harvester.fetchers.pubmed.PubMedFetcher
   etl: harvester.etl.pubmed.PubMedETL
   rolling_window_days: 30
-  inbox_backpressure_max: 5000
+  inbox_backpressure_max: 50000
   daily_cost_ceiling_usd: 2.00
   expected_schema_version: 10
   triage_enabled: true

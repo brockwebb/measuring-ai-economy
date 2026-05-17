@@ -90,6 +90,16 @@ class Runner:
         conn = get_connection()
         run_id = self._open_run_log(conn, query)
         try:
+            # NOTE 2026-05-17: the "inbox_dir" here is misnamed — it's the
+            # harvester's OWN output staging (per cli._staging_dir() docstring,
+            # we drop directly into staging since wintermute's inbox→staging
+            # drain only handles PDFs). So this counts the pipeline's downstream
+            # accumulation, NOT an unprocessed upstream queue. As staging grows
+            # via normal operation, this gate self-locks the harvester out.
+            # Threshold bumped 5000 → 50000 in sources.yaml (2026-05-17) to
+            # unblock — a deeper semantic fix is filed in the operator's
+            # code_fix_backlog ("check recent-growth or per-source-unprocessed,
+            # not cumulative staging count").
             if self._inbox_size() > self.config.inbox_backpressure_max:
                 self._close_run_log(
                     conn,
