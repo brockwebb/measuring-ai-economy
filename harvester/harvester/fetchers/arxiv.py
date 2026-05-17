@@ -14,6 +14,7 @@ Atom is wrapped in arxiv-specific OpenSearch metadata).
 from __future__ import annotations
 
 import json
+import time
 from typing import Any, Iterable
 
 import feedparser
@@ -61,6 +62,8 @@ class ArxivFetcher(Fetcher):
         per_page = int(query.get("per_page", _DEFAULT_PER_PAGE))
         max_pages = int(query.get("max_pages", _DEFAULT_MAX_PAGES))
 
+        rl = self.rate_limit_spec()
+
         with httpx.Client(
             headers={"User-Agent": _USER_AGENT},
             timeout=30,
@@ -69,8 +72,11 @@ class ArxivFetcher(Fetcher):
             for page in range(max_pages):
                 self._pace()
                 params = self._build_params(query, page=page, per_page=per_page)
-                resp = client.get(_BASE_URL, params=params)
-                resp.raise_for_status()
+                resp = self._get_with_429_backoff(client, params, rl)
+                if resp is None:
+                    # All retries exhausted on 429 — yield nothing for this page,
+                    # let outer driver decide whether to retry the run later.
+                    return
                 xml_text = resp.text
 
                 parsed = feedparser.parse(xml_text)
@@ -96,6 +102,47 @@ class ArxivFetcher(Fetcher):
 
                 if len(entries) < per_page:
                     break
+
+    def _get_with_429_backoff(
+        self,
+        client: httpx.Client,
+        params: dict[str, Any],
+        rl: RateLimit,
+    ) -> httpx.Response | None:
+        """GET with retry-on-429. Honors `rl.max_retries` + `rl.backoff_seconds`.
+
+        Returns the successful response. On 429 sleeps per `backoff_seconds`
+        (capped at the last entry once exhausted). On other HTTPStatusError
+        re-raises immediately. After exhausting all retries on 429, returns
+        None so the caller can decide whether to abort the page or the whole
+        run rather than crashing the harvester.
+
+        Fixes 2026-05-17: previously the bare `client.get()` + `raise_for_status()`
+        path crashed the entire iter_payloads run on the first 429, producing
+        the "76 failed runs in 30d, 0 deposits" pattern. The rate_limit_spec
+        was declared but never consumed.
+        """
+        for attempt in range(rl.max_retries + 1):
+            try:
+                resp = client.get(_BASE_URL, params=params)
+                if resp.status_code == 429:
+                    if attempt >= rl.max_retries:
+                        return None
+                    backoff_idx = min(attempt, len(rl.backoff_seconds) - 1)
+                    time.sleep(rl.backoff_seconds[backoff_idx])
+                    continue
+                resp.raise_for_status()
+                return resp
+            except httpx.HTTPStatusError as e:
+                # Treat 429 specially even if raise_for_status caught it first.
+                if e.response is not None and e.response.status_code == 429:
+                    if attempt >= rl.max_retries:
+                        return None
+                    backoff_idx = min(attempt, len(rl.backoff_seconds) - 1)
+                    time.sleep(rl.backoff_seconds[backoff_idx])
+                    continue
+                raise
+        return None
 
     @staticmethod
     def _build_params(query: dict[str, Any], *, page: int, per_page: int) -> dict[str, Any]:
