@@ -24,6 +24,26 @@ SCHEMAS_DIR = Path(__file__).parent / "schemas"
 CONFIG_PATH = Path(__file__).parent / "config" / "sources.yaml"
 
 
+def _exit_code_for_status(status: str) -> int:
+    """Map a RunResult.status to a process exit code.
+
+    - 'completed' -> 0 (normal success)
+    - 'cancelled' -> 2 (operator action needed: circuit breaker fired,
+      backpressure, etc. — the run did NOT do its work but didn't crash)
+    - everything else (failed, running, or anything unexpected) -> 1
+
+    Previously the CLI always exited 0, so a cancelled run looked identical
+    to a healthy run to launchd / the watchdog. With the per-source circuit
+    breaker now real, cancellations are an operator-visible signal and need
+    to surface through the wrapper exit code.
+    """
+    if status == "completed":
+        return 0
+    if status == "cancelled":
+        return 2
+    return 1
+
+
 @app.callback()
 def _root() -> None:
     """Harvester CLI. Use one of the subcommands below."""
@@ -227,6 +247,7 @@ def run(
     runner = Runner(config=config, fetcher=fetcher, etl=etl)
 
     total = 0
+    worst_status = "completed"
     for term in (terms or [None]):
         q: dict[str, Any] = {
             "per_page": int(cfg.get("per_page", 100)),
@@ -252,10 +273,16 @@ def run(
             f"fetched={result.items_fetched} deposited={result.items_deposited} "
             f"failed={result.items_failed}"
         )
+        if result.status != "completed":
+            worst_status = result.status
         total += result.items_deposited
         if limit and total >= limit:
             typer.echo(f"Hit limit ({limit}); stopping.")
             break
+
+    code = _exit_code_for_status(worst_status)
+    if code:
+        raise typer.Exit(code=code)
 
 
 @app.command()
@@ -606,6 +633,9 @@ def drain_url_cmd(
         f"fetched={result.items_fetched} deposited={result.items_deposited} "
         f"failed={result.items_failed}"
     )
+    code = _exit_code_for_status(result.status)
+    if code:
+        raise typer.Exit(code=code)
 
 
 if __name__ == "__main__":
