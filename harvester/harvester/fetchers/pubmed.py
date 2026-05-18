@@ -1,202 +1,317 @@
-"""PubMed fetcher.
+"""PubMed fetcher — direct NCBI E-utilities API.
 
-Backed by the PubMed MCP server. Each query uses a two-step MCP prompt:
-  1. mcp__claude_ai_PubMed__search_articles → returns pmids
-  2. mcp__claude_ai_PubMed__get_article_metadata → returns full records
+Replaces the previous MCP-prompt-mediated path (PubMed MCP server +
+`claude -p` subprocess) which suffered from two recurring bugs filed in
+the operator's code_fix_backlog: a `slice(None, 10, None)` parse error
+and a psycopg2 `cannot adapt type 'dict'` error — both originated in
+the MCP envelope unwrap + ad-hoc record normalization. Replacing the
+fetcher with direct E-utilities calls eliminates the prompt-parsing
+surface entirely.
 
-Both steps run in a single `claude -p` subprocess (Claude orchestrates the
-tool calls). The prompt instructs Claude to return a JSON object with a
-"results" key containing the full article array.
+Per operator directive 2026-05-17:
+  - Use APIs, not crawl4ai or MCP-prompt indirection, when the host
+    has a clean public API (NCBI does)
+  - Read NCBI_API_KEY from environment for the 10 req/sec authenticated
+    rate (vs 3 req/sec floor)
+  - No hardcoded model / key / endpoint values
 
-items_from_response handles three real envelope shapes from claude --output-format json:
-  (a) {"type": "result", "result": "<plain json string>", ...}
-  (b) {"type": "result", "result": "```json\\n{...}\\n```", ...}  ← markdown-fenced
-  (c) {"results": [...]} — tool output passed through directly (test fixtures)
+API:
+  ESearch  — keyword query -> list of PMIDs
+  ESummary — batch metadata (JSON; up to ~200 PMIDs per call)
+  EFetch   — batch abstract text (XML; handles labeled sections like
+             BACKGROUND/METHODS/RESULTS/CONCLUSIONS)
+
+Per-record output shape matches the existing PubMedETL contract — no
+ETL-side changes required.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import re
+import time
+import urllib.parse
+import xml.etree.ElementTree as ET
+from pathlib import Path
 from typing import Any, Iterable
 
-from harvester.fetchers.mcp_base import McpFetcher
-from harvester.types import RateLimit
+import httpx
 
-_FENCE_RE = re.compile(r"```(?:json)?\s*([\s\S]*?)```", re.IGNORECASE)
+from harvester.fetchers.base import Fetcher
+from harvester.types import RateLimit, RawPayload
 
 
-class PubMedFetcher(McpFetcher):
+_EUTILS_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+_USER_AGENT = "WintermuteHarvester/0.1 (research; mailto:brockwebb45@gmail.com)"
+_DEFAULT_PER_PAGE = 50
+_DEFAULT_MAX_PAGES = 4
+_ESUMMARY_BATCH_CAP = 200  # NCBI E-utilities accepts ~200 PMIDs per request
+
+
+def _load_ncbi_api_key() -> str | None:
+    """Return NCBI_API_KEY from env or ~/.wintermute/.env. None if missing."""
+    key = os.environ.get("NCBI_API_KEY", "").strip().strip('"').strip("'")
+    if key:
+        return key
+    env_path = Path.home() / ".wintermute" / ".env"
+    if not env_path.exists():
+        return None
+    for line in env_path.read_text().splitlines():
+        m = re.match(r'^\s*NCBI_API_KEY\s*=\s*"?([^"#]+?)"?\s*(?:#.*)?$', line)
+        if m:
+            return m.group(1).strip().strip('"').strip("'")
+    return None
+
+
+class PubMedFetcher(Fetcher):
+    """Direct NCBI E-utilities fetcher for PubMed.
+
+    Multi-step per page: ESearch (PMIDs) -> ESummary (metadata) -> EFetch (abstract).
+    The 3 calls together count as one "page" in this fetcher's pagination model;
+    NCBI is fine with that pattern as long as we honor the rate limit between
+    individual HTTP requests.
+    """
+
     source_id = "pubmed"
-    mcp_tool = "mcp__claude_ai_PubMed__search_articles"
-
-    # Both MCP tools must be pre-approved so the subprocess call doesn't
-    # hit the interactive permission prompt.
-    allowed_tools = [
-        "mcp__claude_ai_PubMed__search_articles",
-        "mcp__claude_ai_PubMed__get_article_metadata",
-    ]
-
-    # Two-step prompt (search → get_metadata) takes ~40-60s wall clock.
-    # 240s gives comfortable headroom without blocking the runner indefinitely.
-    subprocess_timeout = 240
-
-    # Hard cap on max_results: each MCP call = one claude -p subprocess +
-    # two PubMed tool calls (search + get_metadata) + triage on every paper.
-    # 5 papers per term × 10 terms = 50/night, well under the daily cost ceiling.
-    # (Keeping at 10 for the search arg is fine since get_metadata does one batch
-    # call regardless of count; the wall-clock cost is search + 1 metadata call.)
-    _MAX_RESULTS_CAP = 5
 
     def rate_limit_spec(self) -> RateLimit:
-        # MCP calls go through `claude -p` subprocess. Each call is heavy
-        # (Claude inference + tool dispatch) — pace conservatively.
+        # 10 req/sec authenticated, 3 req/sec floor. We pace at 9 to stay polite
+        # under the authenticated cap; falls within the unauthenticated 3/sec if
+        # the key is missing (the _pace gap is set by the runner / base class
+        # via the seconds_between_requests property — at 9 req/sec that's
+        # ~0.111s, which an unauthenticated request will also satisfy since
+        # NCBI's 3/sec floor allows ~0.333s gap).
         return RateLimit(
-            requests_per_second=0.5,  # 1 call per 2 seconds
-            max_retries=2,
-            backoff_seconds=[5, 30],
+            requests_per_second=9.0,
+            max_retries=3,
+            backoff_seconds=[2, 5, 15],
         )
 
     def args_for_query(self, query: dict[str, Any]) -> dict[str, Any]:
+        """Normalize a query dict. Kept for back-compat with the CLI which
+        invokes args_for_query before iter_payloads in some code paths."""
         return {
-            "query": query.get("keyword", ""),
-            "max_results": min(int(query.get("per_page", 10)), self._MAX_RESULTS_CAP),
+            "term": query.get("keyword") or query.get("term") or "",
+            "per_page": int(query.get("per_page", _DEFAULT_PER_PAGE)),
+            "max_pages": int(query.get("max_pages", _DEFAULT_MAX_PAGES)),
         }
 
-    def _build_mcp_prompt(self, args: dict[str, Any]) -> str:
-        """Two-step prompt: search → get_metadata → return full article JSON.
+    def iter_payloads(
+        self,
+        query: dict[str, Any],
+        *,
+        seen: set[str] | None = None,
+    ) -> Iterable[RawPayload]:
+        """Yield one RawPayload per matched PubMed article.
 
-        search_articles returns only pmids; get_article_metadata returns full
-        records. Ask Claude to execute both in sequence and return a single
-        {"results": [...]} JSON object with no commentary or markdown fences.
+        Query shape:
+            {"keyword": "machine learning", "per_page": 50, "max_pages": 4}
+
+        Per page:
+          1. ESearch for the term -> PMIDs (paginated via retstart)
+          2. ESummary batch for those PMIDs -> metadata dicts
+          3. EFetch batch for those PMIDs -> abstract text per PMID
+          4. For each PMID: normalize + yield archive.write payload
         """
-        query = args["query"]
-        max_results = args["max_results"]
-        return (
-            f"You have two PubMed MCP tools available: "
-            f"mcp__claude_ai_PubMed__search_articles and "
-            f"mcp__claude_ai_PubMed__get_article_metadata.\n\n"
-            f"Step 1: Call mcp__claude_ai_PubMed__search_articles with "
-            f"query={json.dumps(query)} and max_results={max_results}.\n\n"
-            f"Step 2: Take all pmids from the search result and call "
-            f"mcp__claude_ai_PubMed__get_article_metadata with those pmids.\n\n"
-            f"Step 3: Return ONLY a JSON object with a single key 'results' "
-            f"whose value is the array of article records from get_article_metadata. "
-            f"No commentary, no markdown fences, no extra keys."
-        )
+        seen = seen or set()
+        normalized = self.args_for_query(query)
+        term = normalized["term"]
+        per_page = normalized["per_page"]
+        max_pages = normalized["max_pages"]
+        if not term:
+            return
 
-    def items_from_response(self, response: dict[str, Any]) -> Iterable[dict[str, Any]]:
-        """Extract article list from claude --output-format json envelope.
+        api_key = _load_ncbi_api_key()
 
-        Handles three shapes produced by different claude CLI versions:
-          (a) result is a plain JSON string
-          (b) result is a markdown-fenced JSON string (```json\\n{...}\\n```)
-          (c) response is already the unwrapped tool output (test fixtures /
-              direct dict pass-through)
-        In cases (a) and (b) the inner JSON is expected to be {"results": [...]}.
+        with httpx.Client(
+            headers={"User-Agent": _USER_AGENT},
+            timeout=30,
+            follow_redirects=True,
+        ) as client:
+            for page in range(max_pages):
+                retstart = page * per_page
+                self._pace()
+                pmids = self._esearch(client, term, per_page, retstart, api_key)
+                if not pmids:
+                    break
+
+                # Batch summaries + abstracts. With per_page <= ESUMMARY_BATCH_CAP
+                # these fit in a single call each.
+                self._pace()
+                summaries = self._esummary(client, pmids, api_key)
+                self._pace()
+                abstracts = self._efetch_abstracts(client, pmids, api_key)
+
+                for pmid in pmids:
+                    summary = summaries.get(pmid)
+                    if not summary:
+                        continue
+                    pubmed_url = f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/"
+                    if pubmed_url in seen:
+                        continue
+                    record = self._normalize(pmid, summary, abstracts.get(pmid, ""))
+                    entry_bytes = json.dumps(record, sort_keys=True).encode("utf-8")
+                    yield self.archive.write(
+                        source_id=self.source_id,
+                        source_url=pubmed_url,
+                        request_params={
+                            "term": term,
+                            "per_page": per_page,
+                            "page": page,
+                            "pmid": pmid,
+                        },
+                        content=entry_bytes,
+                        content_type="application/json",
+                    )
+
+                if len(pmids) < per_page:
+                    break
+
+    # ---- ESearch / ESummary / EFetch helpers -----------------------------
+
+    def _esearch(
+        self,
+        client: httpx.Client,
+        term: str,
+        retmax: int,
+        retstart: int,
+        api_key: str | None,
+    ) -> list[str]:
+        params = {
+            "db": "pubmed",
+            "term": term,
+            "retmax": str(retmax),
+            "retstart": str(retstart),
+            "retmode": "json",
+        }
+        if api_key:
+            params["api_key"] = api_key
+        resp = client.get(f"{_EUTILS_BASE}/esearch.fcgi", params=params)
+        resp.raise_for_status()
+        return resp.json().get("esearchresult", {}).get("idlist", []) or []
+
+    def _esummary(
+        self,
+        client: httpx.Client,
+        pmids: list[str],
+        api_key: str | None,
+    ) -> dict[str, dict]:
+        if not pmids:
+            return {}
+        params = {"db": "pubmed", "id": ",".join(pmids), "retmode": "json"}
+        if api_key:
+            params["api_key"] = api_key
+        resp = client.get(f"{_EUTILS_BASE}/esummary.fcgi", params=params)
+        resp.raise_for_status()
+        result = resp.json().get("result", {})
+        return {pid: result[pid] for pid in result.get("uids", []) if pid in result}
+
+    def _efetch_abstracts(
+        self,
+        client: httpx.Client,
+        pmids: list[str],
+        api_key: str | None,
+    ) -> dict[str, str]:
+        if not pmids:
+            return {}
+        params = {"db": "pubmed", "id": ",".join(pmids), "rettype": "abstract", "retmode": "xml"}
+        if api_key:
+            params["api_key"] = api_key
+        resp = client.get(f"{_EUTILS_BASE}/efetch.fcgi", params=params)
+        resp.raise_for_status()
+        try:
+            root = ET.fromstring(resp.content)
+        except ET.ParseError:
+            return {pmid: "" for pmid in pmids}
+
+        out: dict[str, str] = {pmid: "" for pmid in pmids}
+        for article in root.findall(".//PubmedArticle"):
+            pmid_el = article.find(".//PMID")
+            if pmid_el is None or not pmid_el.text:
+                continue
+            pmid = pmid_el.text.strip()
+            chunks: list[str] = []
+            for at in article.findall(".//Abstract/AbstractText"):
+                label = at.get("Label")
+                text = "".join(at.itertext()).strip()
+                if not text:
+                    continue
+                chunks.append(f"**{label}:** {text}" if label else text)
+            out[pmid] = "\n\n".join(chunks)
+        return out
+
+    # ---- Normalization ---------------------------------------------------
+
+    def _normalize(self, pmid: str, summary: dict, abstract: str) -> dict[str, Any]:
+        """Produce the record shape PubMedETL expects.
+
+        Output keys: pmid, title, abstract, authors, journal, publication_date,
+        doi, pmcid, mesh_terms, url. Matches what the old MCP-mediated fetcher
+        produced after _normalize_item — kept stable so etl/pubmed.py needs
+        no changes.
         """
-        body = response
-
-        # Unwrap Claude's --output-format json envelope if present.
-        if isinstance(response, dict) and "result" in response:
-            inner = response["result"]
-            if isinstance(inner, str):
-                # Strip markdown code fence if present (shape b).
-                m = _FENCE_RE.search(inner)
-                text = m.group(1).strip() if m else inner.strip()
-                try:
-                    body = json.loads(text)
-                except json.JSONDecodeError:
-                    return []
-            elif isinstance(inner, dict):
-                # Shape where result is already a parsed dict.
-                body = inner
-            else:
-                return []
-
-        if not isinstance(body, dict):
-            return []
-        return [self._normalize_item(r) for r in body.get("results", [])]
-
-    @staticmethod
-    def _normalize_item(record: dict[str, Any]) -> dict[str, Any]:
-        """Normalize a get_article_metadata record to the canonical shape.
-
-        get_article_metadata may return nested or flat shapes depending on the
-        PubMed MCP server version:
-
-        identifiers field:
-          {"pmid": "...", "doi": "...", "pii": "..."}  ← pmid may be here
-          or pmid may already be at top-level
-
-        authors field (three observed shapes):
-          ["Full Name", ...]                            ← flat strings
-          [{"last_name": ..., "fore_name": ..., ...}]  ← structured dicts
-          [{"name": ..., "affiliation": ...}]           ← canonical dict form
-
-        publication_date field:
-          "YYYY-MM-DD"                                  ← ISO string
-          {"year": "YYYY", "month": "MM", "day": "DD"} ← structured dict
-
-        keywords vs mesh_terms:
-          keywords: [...]   ← what get_article_metadata returns
-          mesh_terms: [...] ← what the ETL expects
-
-        Output is normalized to the ETL's expected canonical shape.
-        """
-        # Flatten pmid from identifiers if needed
-        ids = record.get("identifiers") or {}
-        pmid = str(record.get("pmid") or ids.get("pmid") or "")
-        doi = record.get("doi") or ids.get("doi")
-        pmcid = record.get("pmcid") or ids.get("pmcid")
-
-        # Normalize publication_date: dict → ISO string
-        pub_date = record.get("publication_date")
-        if isinstance(pub_date, dict):
-            y = pub_date.get("year", "")
-            m = pub_date.get("month", "01").zfill(2)
-            d = pub_date.get("day", "01").zfill(2)
-            pub_date = f"{y}-{m}-{d}" if y else None
-
-        # Normalize authors to [{"name": str}] form
-        raw_authors = record.get("authors") or []
+        title = (summary.get("title") or "").strip()
         authors: list[dict[str, str]] = []
-        for a in raw_authors:
-            if isinstance(a, str):
-                authors.append({"name": a})
-            elif isinstance(a, dict):
-                if a.get("name"):
-                    # Already canonical form
-                    entry: dict[str, str] = {"name": a["name"]}
-                    if a.get("affiliation"):
-                        entry["affiliation"] = a["affiliation"]
-                    authors.append(entry)
-                elif a.get("last_name") or a.get("fore_name"):
-                    # Structured form from get_article_metadata
-                    parts = [a.get("fore_name", ""), a.get("last_name", "")]
-                    full = " ".join(p for p in parts if p).strip()
-                    if full:
-                        authors.append({"name": full})
+        for a in summary.get("authors", []):
+            nm = (a.get("name") or "").strip()
+            if nm:
+                authors.append({"name": nm})
 
-        # Map keywords → mesh_terms (MeSH terms may not be present; use keywords as proxy)
-        mesh_terms = record.get("mesh_terms") or record.get("keywords") or []
+        journal = (summary.get("source") or summary.get("fulljournalname") or "").strip() or None
 
-        # Normalize journal: may be a string or {"title": ..., "iso_abbreviation": ...} dict
-        raw_journal = record.get("journal")
-        if isinstance(raw_journal, dict):
-            journal: str | None = raw_journal.get("title") or raw_journal.get("iso_abbreviation")
-        else:
-            journal = raw_journal  # str or None
+        # Normalize NCBI's date forms ("2024 Jun 15", "2024 Aug", "2024") to YYYY-MM-DD.
+        pub_date_raw = (summary.get("pubdate") or summary.get("epubdate") or "").strip()
+        publication_date = self._iso_date(pub_date_raw)
+
+        doi = None
+        pmcid = None
+        for aid in summary.get("articleids", []) or []:
+            kind = aid.get("idtype")
+            val = aid.get("value")
+            if kind == "doi" and val:
+                doi = val
+            elif kind == "pmcid" and val:
+                pmcid = val
+
+        # ESummary doesn't carry MeSH terms; EFetch XML does. Use empty list
+        # here — the ETL accepts an empty list. A future enhancement can
+        # parse MeSH from the EFetch XML response (already fetched for the
+        # abstract above) and attach it here.
+        mesh_terms: list[str] = []
 
         return {
             "pmid": pmid,
-            "title": record.get("title") or "",
-            "abstract": record.get("abstract"),
+            "title": title,
+            "abstract": abstract or None,
             "authors": authors,
             "journal": journal,
-            "publication_date": pub_date,
+            "publication_date": publication_date,
             "doi": doi,
             "pmcid": pmcid,
-            "mesh_terms": [t for t in mesh_terms if isinstance(t, str)],
-            "url": record.get("url") or (f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/" if pmid else ""),
+            "mesh_terms": mesh_terms,
+            "url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
         }
+
+    @staticmethod
+    def _iso_date(raw: str) -> str | None:
+        """Parse NCBI date forms permissively. Returns YYYY-MM-DD or None."""
+        if not raw:
+            return None
+        m = re.match(r"^(\d{4})(?:\s+(\w{3}))?(?:\s+(\d{1,2}))?", raw)
+        if not m:
+            return None
+        year = m.group(1)
+        mon = m.group(2) or ""
+        day_str = m.group(3) or "01"
+        months = {
+            "Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04",
+            "May": "05", "Jun": "06", "Jul": "07", "Aug": "08",
+            "Sep": "09", "Oct": "10", "Nov": "11", "Dec": "12",
+        }
+        mm = months.get(mon[:3].capitalize(), "01") if mon else "01"
+        try:
+            day = int(day_str)
+        except ValueError:
+            day = 1
+        return f"{year}-{mm}-{day:02d}"

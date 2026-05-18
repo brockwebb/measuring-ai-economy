@@ -1,194 +1,273 @@
-"""Tests for harvester.fetchers.pubmed.PubMedFetcher.
+"""Tests for PubMedFetcher (direct NCBI E-utilities path, 2026-05-17).
 
-PubMedFetcher is an McpFetcher subclass: query in, JSON tool-response out
-via `claude -p` subprocess. Tests mock subprocess.run entirely so no real
-Claude calls happen at test time.
+Replaces the prior MCP-prompt-mediated test surface. Pattern follows
+test_fetcher_arxiv.py — direct httpx mocks via the pytest-httpx fixture.
 """
 
-from __future__ import annotations
-
 import json
+import re
 from pathlib import Path
-from unittest.mock import patch, MagicMock
-
-import pytest
 
 from harvester.fetchers.pubmed import PubMedFetcher
+from harvester.manifest import RawArchive
+from harvester.types import RateLimit
 
 
-_FIXTURE = Path(__file__).parent / "fixtures" / "pubmed" / "search_response_canine.json"
+# ---------------------------------------------------------------------------
+# Cheap unit tests — no HTTP
+# ---------------------------------------------------------------------------
+
+def _archive(tmp_path: Path) -> RawArchive:
+    return RawArchive(root=tmp_path / "raw", manifest_path=tmp_path / "m.parquet")
 
 
-def test_pubmed_fetcher_source_id_is_pubmed():
-    f = PubMedFetcher.__new__(PubMedFetcher)
+def test_pubmed_fetcher_source_id_is_pubmed(tmp_path):
+    f = PubMedFetcher(archive=_archive(tmp_path))
     assert f.source_id == "pubmed"
 
 
-def test_pubmed_fetcher_mcp_tool_is_search_articles():
-    f = PubMedFetcher.__new__(PubMedFetcher)
-    assert f.mcp_tool == "mcp__claude_ai_PubMed__search_articles"
+def test_pubmed_fetcher_rate_limit_authenticated_rate(tmp_path):
+    f = PubMedFetcher(archive=_archive(tmp_path))
+    rl = f.rate_limit_spec()
+    assert isinstance(rl, RateLimit)
+    # 9 req/sec is the polite rate when authenticated (under NCBI's 10/sec cap)
+    assert rl.requests_per_second == 9.0
+    assert rl.max_retries == 3
 
 
-def test_pubmed_fetcher_args_for_query_maps_keyword_to_query():
-    f = PubMedFetcher.__new__(PubMedFetcher)
-    args = f.args_for_query({"keyword": "canine cognition", "per_page": 5})
-    assert args["query"] == "canine cognition"
-    assert args["max_results"] == 5
+def test_pubmed_fetcher_args_for_query_uses_keyword(tmp_path):
+    f = PubMedFetcher(archive=_archive(tmp_path))
+    out = f.args_for_query({"keyword": "machine learning"})
+    assert out["term"] == "machine learning"
 
 
-def test_pubmed_fetcher_args_for_query_defaults_max_results():
-    f = PubMedFetcher.__new__(PubMedFetcher)
-    args = f.args_for_query({"keyword": "BJJ injury"})
-    assert args["query"] == "BJJ injury"
-    assert args["max_results"] == PubMedFetcher._MAX_RESULTS_CAP
+def test_pubmed_fetcher_args_for_query_accepts_term(tmp_path):
+    f = PubMedFetcher(archive=_archive(tmp_path))
+    out = f.args_for_query({"term": "explicit term"})
+    assert out["term"] == "explicit term"
 
 
-def test_pubmed_fetcher_args_for_query_caps_max_results_at_cap():
-    """The CLI defaults per_page to 100. PubMed caps aggressively to keep
-    cost-per-night bounded (two MCP calls per term: search + get_metadata)."""
-    f = PubMedFetcher.__new__(PubMedFetcher)
-    args = f.args_for_query({"keyword": "test", "per_page": 100})
-    assert args["max_results"] == PubMedFetcher._MAX_RESULTS_CAP
+def test_pubmed_fetcher_args_for_query_defaults(tmp_path):
+    f = PubMedFetcher(archive=_archive(tmp_path))
+    out = f.args_for_query({"keyword": "x"})
+    assert out["per_page"] == 50
+    assert out["max_pages"] == 4
 
 
-def test_pubmed_fetcher_items_from_response_extracts_results_list():
-    f = PubMedFetcher.__new__(PubMedFetcher)
-    response = json.loads(_FIXTURE.read_text())
-    items = list(f.items_from_response(response))
-    assert len(items) == 2
-    assert items[0]["pmid"] == "37001234"
-    assert items[0]["url"].startswith("https://pubmed.ncbi.nlm.nih.gov/")
+def test_pubmed_fetcher_iso_date_full(tmp_path):
+    f = PubMedFetcher(archive=_archive(tmp_path))
+    assert f._iso_date("2024 Jun 15") == "2024-06-15"
 
 
-def test_pubmed_fetcher_items_from_response_handles_empty():
-    f = PubMedFetcher.__new__(PubMedFetcher)
-    items = list(f.items_from_response({"results": []}))
-    assert items == []
+def test_pubmed_fetcher_iso_date_month_only(tmp_path):
+    f = PubMedFetcher(archive=_archive(tmp_path))
+    assert f._iso_date("2024 Aug") == "2024-08-01"
 
 
-def test_pubmed_fetcher_items_from_response_unwraps_claude_result_field(tmp_path):
-    """If subprocess returns claude's --output-format json shape (with a 'result'
-    field that itself contains the tool JSON as a string), unwrap before iterating."""
-    f = PubMedFetcher.__new__(PubMedFetcher)
-    # Claude's CLI may return: {"type": "result", "result": "<tool's json as string>", ...}
-    inner = json.dumps({"results": [{"pmid": "1", "title": "x", "url": "https://pubmed.ncbi.nlm.nih.gov/1/"}]})
-    wrapped = {"type": "result", "result": inner, "session_id": "abc"}
-    items = list(f.items_from_response(wrapped))
-    assert len(items) == 1
-    assert items[0]["pmid"] == "1"
+def test_pubmed_fetcher_iso_date_year_only(tmp_path):
+    f = PubMedFetcher(archive=_archive(tmp_path))
+    assert f._iso_date("2024") == "2024-01-01"
 
 
-def test_pubmed_fetcher_items_from_response_handles_markdown_fenced_result():
-    """claude CLI may wrap the JSON in a markdown code fence inside the result string.
-    Observed in production: result='```json\\n{...}\\n```'."""
-    f = PubMedFetcher.__new__(PubMedFetcher)
-    inner_obj = {"results": [{"pmid": "2", "title": "y", "url": "https://pubmed.ncbi.nlm.nih.gov/2/"}]}
-    fenced = f"```json\n{json.dumps(inner_obj)}\n```"
-    wrapped = {"type": "result", "result": fenced}
-    items = list(f.items_from_response(wrapped))
-    assert len(items) == 1
-    assert items[0]["pmid"] == "2"
+def test_pubmed_fetcher_iso_date_empty(tmp_path):
+    f = PubMedFetcher(archive=_archive(tmp_path))
+    assert f._iso_date("") is None
 
 
-def test_pubmed_fetcher_items_from_response_handles_dict_result_field():
-    """Some Claude CLI versions return result as a dict directly, not a string."""
-    f = PubMedFetcher.__new__(PubMedFetcher)
-    wrapped = {"type": "result", "result": {"results": [{"pmid": "3", "title": "z", "url": "https://pubmed.ncbi.nlm.nih.gov/3/"}]}}
-    items = list(f.items_from_response(wrapped))
-    assert len(items) == 1
-    assert items[0]["pmid"] == "3"
-
-
-def test_pubmed_fetcher_allowed_tools_includes_both_mcp_tools():
-    """Fetcher must pre-approve both search and get_metadata to avoid permission denial."""
-    f = PubMedFetcher.__new__(PubMedFetcher)
-    assert "mcp__claude_ai_PubMed__search_articles" in f.allowed_tools
-    assert "mcp__claude_ai_PubMed__get_article_metadata" in f.allowed_tools
-
-
-def test_pubmed_fetcher_normalize_item_flattens_nested_identifiers():
-    """get_article_metadata returns pmid nested under identifiers; normalize flattens it."""
-    raw = {
-        "identifiers": {"pmid": "42126808", "doi": "10.1007/test", "pii": "10.1007/test"},
-        "title": "Test title",
-        "abstract": "Test abstract",
-        "authors": ["Jane Smith", "John Doe"],
-        "journal": "GeroScience",
-        "publication_date": "2026-05-13",
-        "keywords": ["Canine cognitive dysfunction", "Dog dementia"],
-        "article_types": ["Journal Article"],
-    }
-    result = PubMedFetcher._normalize_item(raw)
-    assert result["pmid"] == "42126808"
-    assert result["doi"] == "10.1007/test"
-    assert result["authors"] == [{"name": "Jane Smith"}, {"name": "John Doe"}]
-    assert result["mesh_terms"] == ["Canine cognitive dysfunction", "Dog dementia"]
-    assert result["url"] == "https://pubmed.ncbi.nlm.nih.gov/42126808/"
-
-
-def test_pubmed_fetcher_normalize_item_handles_structured_author_dicts():
-    """get_article_metadata may return authors as {last_name, fore_name, ...} dicts."""
-    raw = {
-        "pmid": "42126808",
-        "title": "Test",
-        "authors": [
-            {"last_name": "Taylor", "fore_name": "Tracey L", "initials": "TL",
-             "affiliations": ["University of Adelaide"]},
-            {"last_name": "Hazel", "fore_name": "Susan J", "initials": "SJ",
-             "affiliations": ["University of Adelaide"]},
+def test_pubmed_fetcher_normalize_full_record(tmp_path):
+    f = PubMedFetcher(archive=_archive(tmp_path))
+    summary = {
+        "title": "Deep learning",
+        "authors": [{"name": "LeCun Y"}, {"name": "Bengio Y"}, {"name": "Hinton G"}],
+        "source": "Nature",
+        "pubdate": "2015 May 28",
+        "articleids": [
+            {"idtype": "doi", "value": "10.1038/nature14539"},
+            {"idtype": "pmcid", "value": None},
+            {"idtype": "pubmed", "value": "26017442"},
         ],
-        "publication_date": {"year": "2026", "month": "05", "day": "13"},
-        "keywords": ["dogs"],
     }
-    result = PubMedFetcher._normalize_item(raw)
-    assert result["authors"] == [{"name": "Tracey L Taylor"}, {"name": "Susan J Hazel"}]
-    assert result["publication_date"] == "2026-05-13"
+    rec = f._normalize("26017442", summary, "Abstract text.")
+    assert rec["pmid"] == "26017442"
+    assert rec["title"] == "Deep learning"
+    assert rec["abstract"] == "Abstract text."
+    assert rec["authors"] == [{"name": "LeCun Y"}, {"name": "Bengio Y"}, {"name": "Hinton G"}]
+    assert rec["journal"] == "Nature"
+    assert rec["publication_date"] == "2015-05-28"
+    assert rec["doi"] == "10.1038/nature14539"
+    assert rec["pmcid"] is None
+    assert rec["mesh_terms"] == []
+    assert rec["url"] == "https://pubmed.ncbi.nlm.nih.gov/26017442/"
 
 
-def test_pubmed_fetcher_normalize_item_handles_date_as_dict():
-    """get_article_metadata may return publication_date as {year, month, day} dict."""
-    raw = {
-        "pmid": "99",
-        "title": "X",
-        "authors": [],
-        "publication_date": {"year": "2025", "month": "3", "day": "7"},
-        "keywords": [],
+def test_pubmed_fetcher_normalize_handles_missing_fields(tmp_path):
+    f = PubMedFetcher(archive=_archive(tmp_path))
+    rec = f._normalize("999", {"title": "Sparse record"}, "")
+    assert rec["pmid"] == "999"
+    assert rec["title"] == "Sparse record"
+    assert rec["abstract"] is None
+    assert rec["authors"] == []
+    assert rec["journal"] is None
+    assert rec["publication_date"] is None
+    assert rec["doi"] is None
+    assert rec["pmcid"] is None
+    assert rec["url"] == "https://pubmed.ncbi.nlm.nih.gov/999/"
+
+
+def test_pubmed_fetcher_normalize_falls_back_to_fulljournalname(tmp_path):
+    f = PubMedFetcher(archive=_archive(tmp_path))
+    rec = f._normalize("1", {"title": "x", "fulljournalname": "Journal of X"}, "")
+    assert rec["journal"] == "Journal of X"
+
+
+# ---------------------------------------------------------------------------
+# Integration: iter_payloads end-to-end via httpx_mock
+# ---------------------------------------------------------------------------
+
+_ESEARCH_BODY = json.dumps({
+    "esearchresult": {
+        "idlist": ["100", "200", "300"],
+        "count": "3",
     }
-    result = PubMedFetcher._normalize_item(raw)
-    assert result["publication_date"] == "2025-03-07"
+})
 
-
-def test_pubmed_fetcher_normalize_item_handles_journal_as_dict():
-    """get_article_metadata may return journal as {title, iso_abbreviation} dict."""
-    raw = {
-        "pmid": "42126808",
-        "title": "Test",
-        "authors": [],
-        "journal": {"title": "GeroScience", "iso_abbreviation": "Geroscience"},
-        "publication_date": "2026-05-13",
-        "keywords": [],
+_ESUMMARY_BODY = json.dumps({
+    "result": {
+        "uids": ["100", "200", "300"],
+        "100": {
+            "title": "First",
+            "authors": [{"name": "Smith A"}],
+            "source": "Journal A",
+            "pubdate": "2024 Jan 5",
+            "articleids": [{"idtype": "doi", "value": "10.1/aaa"}],
+        },
+        "200": {
+            "title": "Second",
+            "authors": [{"name": "Jones B"}],
+            "source": "Journal B",
+            "pubdate": "2024 Feb",
+            "articleids": [],
+        },
+        "300": {
+            "title": "Third",
+            "authors": [],
+            "source": "Journal C",
+            "pubdate": "2024",
+            "articleids": [],
+        },
     }
-    result = PubMedFetcher._normalize_item(raw)
-    assert result["journal"] == "GeroScience"
+})
+
+_EFETCH_BODY = """<?xml version="1.0"?>
+<PubmedArticleSet>
+  <PubmedArticle>
+    <MedlineCitation>
+      <PMID>100</PMID>
+      <Article><Abstract><AbstractText>Abstract for first.</AbstractText></Abstract></Article>
+    </MedlineCitation>
+  </PubmedArticle>
+  <PubmedArticle>
+    <MedlineCitation>
+      <PMID>200</PMID>
+      <Article><Abstract>
+        <AbstractText Label="BACKGROUND">Bg text.</AbstractText>
+        <AbstractText Label="METHODS">Methods text.</AbstractText>
+      </Abstract></Article>
+    </MedlineCitation>
+  </PubmedArticle>
+  <PubmedArticle>
+    <MedlineCitation>
+      <PMID>300</PMID>
+      <Article></Article>
+    </MedlineCitation>
+  </PubmedArticle>
+</PubmedArticleSet>
+"""
 
 
-@patch("harvester.fetchers.mcp_base.subprocess.run")
-def test_pubmed_iter_payloads_yields_one_payload_per_result(mock_run, tmp_path):
-    """End-to-end mock: subprocess returns search response, fetcher yields
-    one RawPayload per result, content_type='application/json'."""
-    from harvester.manifest import RawArchive
-
-    mock_run.return_value = MagicMock(
-        returncode=0,
-        stdout=_FIXTURE.read_text(),
-        stderr="",
+def _wire_eutils_mocks(httpx_mock):
+    httpx_mock.add_response(
+        method="GET",
+        url=re.compile(r".*esearch\.fcgi.*"),
+        text=_ESEARCH_BODY,
+        is_reusable=True,
     )
-    archive = RawArchive(root=tmp_path / "raw", manifest_path=tmp_path / "m.parquet")
-    f = PubMedFetcher(archive=archive)
-    payloads = list(f.iter_payloads({"keyword": "canine cognition"}))
+    httpx_mock.add_response(
+        method="GET",
+        url=re.compile(r".*esummary\.fcgi.*"),
+        text=_ESUMMARY_BODY,
+        is_reusable=True,
+    )
+    httpx_mock.add_response(
+        method="GET",
+        url=re.compile(r".*efetch\.fcgi.*"),
+        text=_EFETCH_BODY,
+        is_reusable=True,
+    )
 
-    assert len(payloads) == 2
+
+def test_pubmed_iter_payloads_yields_one_per_pmid(tmp_path, httpx_mock):
+    _wire_eutils_mocks(httpx_mock)
+    fetcher = PubMedFetcher(archive=_archive(tmp_path))
+    payloads = list(fetcher.iter_payloads({"keyword": "test query", "per_page": 3, "max_pages": 1}))
+    assert len(payloads) == 3
     for p in payloads:
-        assert p.content_type == "application/json"
         assert p.source_id == "pubmed"
+        assert p.raw_hash.startswith("sha256:")
         assert p.source_url.startswith("https://pubmed.ncbi.nlm.nih.gov/")
+
+
+def test_pubmed_iter_payloads_record_has_correct_shape(tmp_path, httpx_mock):
+    _wire_eutils_mocks(httpx_mock)
+    fetcher = PubMedFetcher(archive=_archive(tmp_path))
+    payloads = list(fetcher.iter_payloads({"keyword": "test", "per_page": 3, "max_pages": 1}))
+    rec = json.loads(payloads[0].file_path.read_text())
+    expected_keys = {"pmid", "title", "abstract", "authors", "journal",
+                     "publication_date", "doi", "pmcid", "mesh_terms", "url"}
+    assert expected_keys <= set(rec.keys())
+    assert rec["pmid"] == "100"
+    assert rec["abstract"] == "Abstract for first."
+    assert rec["doi"] == "10.1/aaa"
+    assert rec["publication_date"] == "2024-01-05"
+
+
+def test_pubmed_iter_payloads_labeled_abstract_sections(tmp_path, httpx_mock):
+    _wire_eutils_mocks(httpx_mock)
+    fetcher = PubMedFetcher(archive=_archive(tmp_path))
+    payloads = list(fetcher.iter_payloads({"keyword": "test", "per_page": 3, "max_pages": 1}))
+    rec_200 = next(json.loads(p.file_path.read_text()) for p in payloads
+                   if json.loads(p.file_path.read_text())["pmid"] == "200")
+    assert "**BACKGROUND:**" in rec_200["abstract"]
+    assert "Bg text." in rec_200["abstract"]
+    assert "**METHODS:**" in rec_200["abstract"]
+
+
+def test_pubmed_iter_payloads_respects_seen(tmp_path, httpx_mock):
+    _wire_eutils_mocks(httpx_mock)
+    fetcher = PubMedFetcher(archive=_archive(tmp_path))
+    seen = {"https://pubmed.ncbi.nlm.nih.gov/200/"}
+    payloads = list(fetcher.iter_payloads({"keyword": "test", "per_page": 3, "max_pages": 1}, seen=seen))
+    urls = [p.source_url for p in payloads]
+    assert "https://pubmed.ncbi.nlm.nih.gov/200/" not in urls
+    assert "https://pubmed.ncbi.nlm.nih.gov/100/" in urls
+    assert "https://pubmed.ncbi.nlm.nih.gov/300/" in urls
+
+
+def test_pubmed_iter_payloads_empty_search_stops_pagination(tmp_path, httpx_mock):
+    empty_search = json.dumps({"esearchresult": {"idlist": [], "count": "0"}})
+    httpx_mock.add_response(
+        method="GET",
+        url=re.compile(r".*esearch\.fcgi.*"),
+        text=empty_search,
+        is_reusable=True,
+    )
+    fetcher = PubMedFetcher(archive=_archive(tmp_path))
+    payloads = list(fetcher.iter_payloads({"keyword": "test", "per_page": 5, "max_pages": 5}))
+    assert payloads == []
+
+
+def test_pubmed_iter_payloads_no_term_returns_empty(tmp_path):
+    """No keyword/term in query -> generator yields nothing without making HTTP calls."""
+    fetcher = PubMedFetcher(archive=_archive(tmp_path))
+    payloads = list(fetcher.iter_payloads({"per_page": 5, "max_pages": 1}))
+    assert payloads == []
