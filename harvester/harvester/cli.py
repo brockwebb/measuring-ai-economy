@@ -199,7 +199,17 @@ def run(
         archive_root=archive_root,
         manifest_path=manifest_path,
         inbox_dir=_staging_dir(),
-        inbox_backpressure_max=int(cfg.get("inbox_backpressure_max", 5000)),
+        # output_circuit_breaker_max replaces the old inbox_backpressure_max
+        # (which counted the harvester's own staging output and self-locked).
+        # Fall back to the old field name for one migration cycle so a
+        # sources.yaml that hasn't been updated yet still boots.
+        output_circuit_breaker_max=int(cfg.get(
+            "output_circuit_breaker_max",
+            cfg.get("inbox_backpressure_max", 10000),
+        )),
+        output_circuit_breaker_window_hours=int(
+            cfg.get("output_circuit_breaker_window_hours", 24)
+        ),
         expected_schema_version=int(cfg.get("expected_schema_version", 2)),
         scout_base_url=cfg.get("scout_base_url"),
         triage_enabled=bool(cfg.get("triage_enabled", False)),
@@ -564,7 +574,17 @@ def drain_url_cmd(
         archive_root=data_root / "raw",
         manifest_path=data_root / "manifests" / "raw_manifest.parquet",
         inbox_dir=_staging_dir(),
-        inbox_backpressure_max=int(cfg.get("inbox_backpressure_max", 5000)),
+        # output_circuit_breaker_max replaces the old inbox_backpressure_max
+        # (which counted the harvester's own staging output and self-locked).
+        # Fall back to the old field name for one migration cycle so a
+        # sources.yaml that hasn't been updated yet still boots.
+        output_circuit_breaker_max=int(cfg.get(
+            "output_circuit_breaker_max",
+            cfg.get("inbox_backpressure_max", 10000),
+        )),
+        output_circuit_breaker_window_hours=int(
+            cfg.get("output_circuit_breaker_window_hours", 24)
+        ),
         expected_schema_version=int(cfg.get("expected_schema_version", 9)),
         scout_base_url=cfg.get("scout_base_url"),
         triage_enabled=bool(cfg.get("triage_enabled", True)),

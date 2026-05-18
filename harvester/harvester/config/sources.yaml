@@ -6,10 +6,13 @@ federal_register:
   fetcher: harvester.fetchers.federal_register.FederalRegisterFetcher
   etl: harvester.etl.federal_register.FederalRegisterETL
   rolling_window_days: 60
-  # Threshold for staging/YYYY-MM/ — run pauses if exceeded. Bumped from 500
-  # to 5000 because output now lands directly in staging (no drain step) and
-  # the initial backfill from a 60-day FR window already produced ~250 files.
-  inbox_backpressure_max: 50000
+  # Circuit breaker (replaces the old inbox_backpressure_max self-lock):
+  # cancel a run if this source has already deposited more than
+  # output_circuit_breaker_max items in the last
+  # output_circuit_breaker_window_hours. Fires only on genuine runaway
+  # behavior (fetcher loops, upstream surges), not routine accumulation.
+  output_circuit_breaker_max: 10000
+  output_circuit_breaker_window_hours: 24
   daily_cost_ceiling_usd: 0.00
   # validate_count.py — alert fires when fraction of FR deposits with
   # precision_match=true falls below this threshold over the validation
@@ -46,7 +49,13 @@ arxiv:
   fetcher: harvester.fetchers.arxiv.ArxivFetcher
   etl: harvester.etl.arxiv.ArxivETL
   rolling_window_days: 30
-  inbox_backpressure_max: 50000
+  # Circuit breaker (replaces the old inbox_backpressure_max self-lock):
+  # cancel a run if this source has already deposited more than
+  # output_circuit_breaker_max items in the last
+  # output_circuit_breaker_window_hours. Fires only on genuine runaway
+  # behavior (fetcher loops, upstream surges), not routine accumulation.
+  output_circuit_breaker_max: 10000
+  output_circuit_breaker_window_hours: 24
   daily_cost_ceiling_usd: 5.00
   expected_schema_version: 5
   triage_enabled: true
@@ -93,7 +102,13 @@ semantic_scholar:
   fetcher: harvester.fetchers.semantic_scholar.SemanticScholarFetcher
   etl: harvester.etl.semantic_scholar.SemanticScholarETL
   rolling_window_days: 365   # search broad
-  inbox_backpressure_max: 50000
+  # Circuit breaker (replaces the old inbox_backpressure_max self-lock):
+  # cancel a run if this source has already deposited more than
+  # output_circuit_breaker_max items in the last
+  # output_circuit_breaker_window_hours. Fires only on genuine runaway
+  # behavior (fetcher loops, upstream surges), not routine accumulation.
+  output_circuit_breaker_max: 10000
+  output_circuit_breaker_window_hours: 24
   expected_schema_version: 6
   triage_enabled: true
   triage_threshold: 0.4
@@ -114,7 +129,13 @@ zenodo:
   fetcher: harvester.fetchers.zenodo.ZenodoFetcher
   etl: harvester.etl.zenodo.ZenodoETL
   rolling_window_days: 30
-  inbox_backpressure_max: 50000
+  # Circuit breaker (replaces the old inbox_backpressure_max self-lock):
+  # cancel a run if this source has already deposited more than
+  # output_circuit_breaker_max items in the last
+  # output_circuit_breaker_window_hours. Fires only on genuine runaway
+  # behavior (fetcher loops, upstream surges), not routine accumulation.
+  output_circuit_breaker_max: 10000
+  output_circuit_breaker_window_hours: 24
   daily_cost_ceiling_usd: 5.00
   expected_schema_version: 8
   triage_enabled: true
@@ -150,7 +171,13 @@ zenodo:
 url_drain:
   fetcher: harvester.fetchers.url_drain.UrlDrainFetcher
   etl: harvester.etl.url_drain.UrlDrainETL
-  inbox_backpressure_max: 50000
+  # Circuit breaker (replaces the old inbox_backpressure_max self-lock):
+  # cancel a run if this source has already deposited more than
+  # output_circuit_breaker_max items in the last
+  # output_circuit_breaker_window_hours. Fires only on genuine runaway
+  # behavior (fetcher loops, upstream surges), not routine accumulation.
+  output_circuit_breaker_max: 10000
+  output_circuit_breaker_window_hours: 24
   daily_cost_ceiling_usd: 5.00
   expected_schema_version: 9
   triage_enabled: true
@@ -162,7 +189,13 @@ pubmed:
   fetcher: harvester.fetchers.pubmed.PubMedFetcher
   etl: harvester.etl.pubmed.PubMedETL
   rolling_window_days: 30
-  inbox_backpressure_max: 50000
+  # Circuit breaker (replaces the old inbox_backpressure_max self-lock):
+  # cancel a run if this source has already deposited more than
+  # output_circuit_breaker_max items in the last
+  # output_circuit_breaker_window_hours. Fires only on genuine runaway
+  # behavior (fetcher loops, upstream surges), not routine accumulation.
+  output_circuit_breaker_max: 10000
+  output_circuit_breaker_window_hours: 24
   daily_cost_ceiling_usd: 2.00
   expected_schema_version: 10
   triage_enabled: true

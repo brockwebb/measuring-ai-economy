@@ -61,7 +61,7 @@ def test_runner_classifies_failures_after_run(clean_failure_state, tmp_path):
         archive_root=tmp_path / "raw",
         manifest_path=tmp_path / "m.parquet",
         inbox_dir=tmp_path / "inbox",
-        inbox_backpressure_max=500,
+        output_circuit_breaker_max=500,
         expected_schema_version=5,
     )
     runner = Runner(config=config, fetcher=OneFailFetcher(), etl=RaisingETL())

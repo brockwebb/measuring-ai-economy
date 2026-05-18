@@ -74,7 +74,7 @@ def test_runner_enqueues_when_citation_chain_enabled(clean_cc_state, tmp_path):
         archive_root=tmp_path / "raw",
         manifest_path=tmp_path / "m.parquet",
         inbox_dir=tmp_path / "inbox",
-        inbox_backpressure_max=500,
+        output_circuit_breaker_max=500,
         expected_schema_version=6,
         citation_chain_enabled=True,
     )
@@ -140,7 +140,7 @@ def test_runner_does_not_enqueue_when_disabled(clean_cc_state, tmp_path):
         archive_root=tmp_path / "raw",
         manifest_path=tmp_path / "m.parquet",
         inbox_dir=tmp_path / "inbox",
-        inbox_backpressure_max=500,
+        output_circuit_breaker_max=500,
         expected_schema_version=6,
         citation_chain_enabled=False,
     )

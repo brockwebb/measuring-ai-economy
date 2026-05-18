@@ -52,7 +52,7 @@ def test_runner_scouts_on_first_run(mock_scout_cls, clean_scout_state, tmp_path)
         archive_root=tmp_path / "raw",
         manifest_path=tmp_path / "m.parquet",
         inbox_dir=tmp_path / "inbox",
-        inbox_backpressure_max=500,
+        output_circuit_breaker_max=500,
         expected_schema_version=3,
         scout_base_url="https://example.com",
     )
@@ -111,7 +111,7 @@ def test_runner_skips_scout_on_recent_run(mock_scout_cls, clean_scout_state, tmp
         archive_root=tmp_path / "raw",
         manifest_path=tmp_path / "m.parquet",
         inbox_dir=tmp_path / "inbox",
-        inbox_backpressure_max=500,
+        output_circuit_breaker_max=500,
         expected_schema_version=3,
         scout_base_url="https://example.com",
     )

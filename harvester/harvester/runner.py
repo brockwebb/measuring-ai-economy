@@ -37,8 +37,20 @@ class RunnerConfig:
     archive_root: Path
     manifest_path: Path
     inbox_dir: Path
-    inbox_backpressure_max: int
+    # Circuit breaker — cancel the run if this source has deposited more
+    # than `output_circuit_breaker_max` items in the last
+    # `output_circuit_breaker_window_hours` hours. Per-source rolling window
+    # against harvest.fetched_items, not a cumulative file count.
+    #
+    # Replaces the older `inbox_backpressure_max` gate (2026-05-17 retro):
+    # that gate counted files in `inbox_dir`, which is actually the
+    # harvester's OWN staging output, so it self-locked the harvester as
+    # the pipeline accumulated normal output. The new gate fires only when
+    # something is genuinely runaway (fetcher loops, upstream surges,
+    # operator-triggered floods).
+    output_circuit_breaker_max: int
     expected_schema_version: int
+    output_circuit_breaker_window_hours: int = 24
     scout_base_url: str | None = None
     triage_enabled: bool = False
     triage_model: str = "claude-sonnet-4-6"
@@ -90,24 +102,27 @@ class Runner:
         conn = get_connection()
         run_id = self._open_run_log(conn, query)
         try:
-            # NOTE 2026-05-17: the "inbox_dir" here is misnamed — it's the
-            # harvester's OWN output staging (per cli._staging_dir() docstring,
-            # we drop directly into staging since wintermute's inbox→staging
-            # drain only handles PDFs). So this counts the pipeline's downstream
-            # accumulation, NOT an unprocessed upstream queue. As staging grows
-            # via normal operation, this gate self-locks the harvester out.
-            # Threshold bumped 5000 → 50000 in sources.yaml (2026-05-17) to
-            # unblock — a deeper semantic fix is filed in the operator's
-            # code_fix_backlog ("check recent-growth or per-source-unprocessed,
-            # not cumulative staging count").
-            if self._inbox_size() > self.config.inbox_backpressure_max:
+            # Circuit breaker (proper semantic, replaces the old
+            # _inbox_size self-lock gate). Counts the number of items this
+            # source has deposited in the rolling window via the
+            # harvest.fetched_items ledger — a true measure of recent
+            # per-source output velocity. Fires only on genuine runaway
+            # behavior, not on routine staging accumulation.
+            recent = self._recent_deposits(conn)
+            if recent > self.config.output_circuit_breaker_max:
+                hours = self.config.output_circuit_breaker_window_hours
                 self._close_run_log(
                     conn,
                     run_id,
                     status="cancelled",
-                    error=f"inbox backpressure: {self._inbox_size()} > {self.config.inbox_backpressure_max}",
+                    error=(
+                        f"output circuit breaker: {recent} deposits in last "
+                        f"{hours}h > {self.config.output_circuit_breaker_max}"
+                    ),
                 )
-                return RunResult(run_id=run_id, status="cancelled", error="backpressure")
+                return RunResult(
+                    run_id=run_id, status="cancelled", error="circuit_breaker"
+                )
 
             self._assert_schema_version(conn)
 
@@ -228,10 +243,29 @@ class Runner:
             items_deposited=deposited, items_failed=failed,
         )
 
-    def _inbox_size(self) -> int:
-        if not self.config.inbox_dir.exists():
-            return 0
-        return sum(1 for _ in self.config.inbox_dir.iterdir())
+    def _recent_deposits(self, conn: psycopg.Connection) -> int:
+        """Count deposited items for this source within the rolling window.
+
+        Replaces the old _inbox_size() (which counted files in inbox_dir —
+        i.e. the harvester's own staging output, so the gate self-locked).
+        Reads from the harvest.fetched_items ledger which is the canonical
+        record of what each source has produced. Per-source so a runaway
+        on one source doesn't gate other sources.
+        """
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT count(*) FROM harvest.fetched_items
+                WHERE source_id = %s
+                  AND status = 'deposited'
+                  AND fetched_at > now() - make_interval(hours => %s)
+                """,
+                (
+                    self.config.source_id,
+                    self.config.output_circuit_breaker_window_hours,
+                ),
+            )
+            return int(cur.fetchone()[0])
 
     def _assert_schema_version(self, conn: psycopg.Connection) -> None:
         with conn.cursor() as cur:

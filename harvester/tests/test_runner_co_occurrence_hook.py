@@ -58,7 +58,7 @@ def test_runner_records_co_occurrence_when_url_known_under_other_source(clean_co
         archive_root=tmp_path / "raw",
         manifest_path=tmp_path / "m.parquet",
         inbox_dir=tmp_path / "inbox",
-        inbox_backpressure_max=500,
+        output_circuit_breaker_max=500,
         expected_schema_version=5,
     )
 
@@ -124,7 +124,7 @@ def test_runner_does_not_record_co_occurrence_for_same_source_dedup(clean_co_sta
         archive_root=tmp_path / "raw",
         manifest_path=tmp_path / "m.parquet",
         inbox_dir=tmp_path / "inbox",
-        inbox_backpressure_max=500,
+        output_circuit_breaker_max=500,
         expected_schema_version=5,
     )
 
