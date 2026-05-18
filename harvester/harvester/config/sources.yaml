@@ -11,6 +11,15 @@ federal_register:
   # the initial backfill from a 60-day FR window already produced ~250 files.
   inbox_backpressure_max: 50000
   daily_cost_ceiling_usd: 0.00
+  # validate_count.py — alert fires when fraction of FR deposits with
+  # precision_match=true falls below this threshold over the validation
+  # window. The 2026-05-18 backfill showed actual precision was 2% (6/294)
+  # because the FR API's conditions[term] does fulltext across many fields
+  # (agencies, doc type, action) — broader than just title+abstract. The
+  # threshold is set generously so the alert fires only on real degradation
+  # of the precision-tagging signal, not the current steady-state.
+  precision_alert_threshold: 0.30
+  validation_window_days: 30
   tier_1_terms:
     - "artificial intelligence"
     - "machine learning"

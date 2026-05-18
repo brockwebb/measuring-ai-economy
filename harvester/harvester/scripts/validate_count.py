@@ -1,18 +1,34 @@
-"""Nightly count validation: compare harvester ingest vs FR.gov public count.
+"""Nightly Federal Register precision + coverage validation.
 
-Approach: union of tier_1 + tier_2 terms over the prior 30 days. The FR API
-returns the public count via the 'count' field of a normal documents.json
-request (with per_page=1 to minimize bandwidth). Compare to:
+Previous version computed a "drift" metric:
+    drift = abs(harvester_distinct_term_matches - upstream_per_term_sum) / upstream_per_term_sum
 
-    SELECT count(*) FROM harvest.federal_register_documents
-    WHERE (title ILIKE any term OR abstract ILIKE any term)
-    AND publication_date BETWEEN ... AND ...
+This conflated two different problems and made the alert hard to interpret:
+the upstream sum double-counts documents matching multiple terms, while the
+harvester counts distinct rows. A perfectly-working pipeline routinely fired
+"99.5% drift" because the upstream sum was inflated by overlap.
 
-The upstream comparison is approximate — summing per-term counts double-
-counts documents matching multiple terms, while the harvester uses distinct
-rows. A 5% tolerance accommodates this; tighter accuracy is post-MVP.
+Pivot (2026-05-18, follow-on to ETL precision tagging at commit 2284be9):
 
-Run from the launchd wrapper.
+  - **Primary metric: precision rate** — of the FR rows deposited in the
+    rolling window, what fraction have `payload->>'precision_match' = true`
+    (i.e. title or abstract actually contains one of the configured terms,
+    not just an agency name or document type that matched the loose FR API
+    `conditions[term]` fulltext search). Read directly from the canonical
+    metadata stamped at ETL time.
+
+  - **Secondary metric: upstream per-term sum** — kept for context but
+    explicitly labeled as "inflated by per-term overlap." Useful for spotting
+    fetcher-loss (deposits suddenly drop to 0 while upstream stays nonzero)
+    but no longer the basis of the alert.
+
+  - **Alert conditions:**
+      1. No deposits at all in window → fetcher loss
+      2. Precision rate below configured threshold
+         (`federal_register.precision_alert_threshold` in sources.yaml,
+         default 0.30) → off-term content dominating
+
+Run from the launchd wrapper `scripts/jobs/harvest_count_validation.sh`.
 """
 
 from __future__ import annotations
@@ -32,11 +48,15 @@ from harvester.db import get_connection
 CONFIG_PATH = Path(__file__).parent.parent / "config" / "sources.yaml"
 _BASE_URL = "https://www.federalregister.gov/api/v1/documents.json"
 _USER_AGENT = "WintermuteHarvester/0.1 (research; brockwebb45@gmail.com)"
-_TOLERANCE = 0.05
+_DEFAULT_PRECISION_THRESHOLD = 0.30
+_DEFAULT_WINDOW_DAYS = 30
 
 
-def _terms() -> list[str]:
-    cfg = yaml.safe_load(CONFIG_PATH.read_text())["federal_register"]
+def _config() -> dict:
+    return yaml.safe_load(CONFIG_PATH.read_text())["federal_register"]
+
+
+def _terms(cfg: dict) -> list[str]:
     return list(cfg.get("tier_1_terms", [])) + list(cfg.get("tier_2_terms", []))
 
 
@@ -53,24 +73,31 @@ def _upstream_count(term: str, gte: str, lte: str) -> int:
         return int(resp.json().get("count") or 0)
 
 
-def _harvester_count(gte: str, lte: str, terms: list[str]) -> int:
-    conn = get_connection()
-    try:
+def _harvester_counts(gte: str, lte: str) -> tuple[int, int]:
+    """Return (total_deposited, precision_matched) for the date window.
+
+    Reads from document_metadata.payload — the canonical precision tag
+    stamped at ETL parse time. Rows missing the key (shouldn't exist after
+    the 2026-05-18 backfill, but defensive) are counted in total but not in
+    matched, which is the correct interpretation.
+    """
+    with get_connection() as conn:
         with conn.cursor() as cur:
-            ilike_pairs = " OR ".join(["title ILIKE %s OR abstract ILIKE %s"] * len(terms))
-            params: list = []
-            for t in terms:
-                params.extend([f"%{t}%", f"%{t}%"])
-            params.extend([gte, lte])
-            sql = f"""
-                SELECT count(*) FROM harvest.federal_register_documents
-                WHERE ({ilike_pairs})
-                AND publication_date BETWEEN %s AND %s
-            """
-            cur.execute(sql, params)
-            return cur.fetchone()[0]
-    finally:
-        conn.close()
+            cur.execute(
+                """
+                SELECT
+                    count(*) AS total,
+                    count(*) FILTER (
+                        WHERE (payload->>'precision_match')::boolean IS TRUE
+                    ) AS matched
+                FROM harvest.document_metadata
+                WHERE source_id = 'federal_register'
+                  AND published_date BETWEEN %s AND %s
+                """,
+                (gte, lte),
+            )
+            row = cur.fetchone()
+            return int(row[0]), int(row[1])
 
 
 def _notify(subject: str, body: str) -> None:
@@ -91,35 +118,58 @@ def _notify(subject: str, body: str) -> None:
         s.send_message(msg)
 
 
-def main() -> int:
-    gte = (date.today() - timedelta(days=30)).isoformat()
-    lte = date.today().isoformat()
-    terms = _terms()
-
-    upstream_total = 0
-    for t in terms:
-        upstream_total += _upstream_count(t, gte, lte)
-
-    harvester_total = _harvester_count(gte, lte, terms)
-
-    diff = harvester_total - upstream_total
-    if upstream_total == 0:
-        ratio = 0.0
-    else:
-        ratio = abs(diff) / upstream_total
-
-    msg = (
-        f"FR count validation {gte}..{lte}\n"
-        f"  upstream (sum-of-terms, double-counts overlaps): {upstream_total}\n"
-        f"  harvester (distinct rows matching any term):     {harvester_total}\n"
-        f"  diff: {diff} ({ratio:.1%})\n"
+def _build_report(
+    gte: str,
+    lte: str,
+    total: int,
+    matched: int,
+    upstream_sum: int,
+    threshold: float,
+) -> tuple[str, str, bool]:
+    """Return (subject, body, alert_fired)."""
+    rate = (matched / total) if total else 0.0
+    body = (
+        f"FR validation {gte}..{lte}\n"
+        f"  harvester deposits in window:           {total}\n"
+        f"  precision-matched (term in title/abst): {matched}\n"
+        f"  precision rate:                         {rate:.1%}\n"
+        f"  upstream API per-term sum (inflated):   {upstream_sum}\n"
+        f"  threshold:                              {threshold:.0%}\n"
     )
-    print(msg)
-    if ratio > _TOLERANCE:
-        _notify(
-            subject=f"[harvester] FR count validation drift {ratio:.1%}",
-            body=msg,
+    if total == 0 and upstream_sum > 0:
+        subject = "[harvester] FR no deposits in window — fetcher loss?"
+        return subject, body, True
+    if total == 0:
+        # Both zero; nothing to report. Don't alert — could be a quiet window.
+        subject = "[harvester] FR validation: window empty (no upstream, no deposits)"
+        return subject, body, False
+    if rate < threshold:
+        subject = (
+            f"[harvester] FR precision rate {rate:.1%} below threshold {threshold:.0%}"
         )
+        return subject, body, True
+    subject = f"[harvester] FR precision rate {rate:.1%} OK"
+    return subject, body, False
+
+
+def main() -> int:
+    cfg = _config()
+    threshold = float(cfg.get("precision_alert_threshold", _DEFAULT_PRECISION_THRESHOLD))
+    window_days = int(cfg.get("validation_window_days", _DEFAULT_WINDOW_DAYS))
+
+    gte = (date.today() - timedelta(days=window_days)).isoformat()
+    lte = date.today().isoformat()
+
+    terms = _terms(cfg)
+    upstream_sum = sum(_upstream_count(t, gte, lte) for t in terms)
+    total, matched = _harvester_counts(gte, lte)
+
+    subject, body, alert_fired = _build_report(
+        gte, lte, total, matched, upstream_sum, threshold
+    )
+    print(body)
+    if alert_fired:
+        _notify(subject=subject, body=body)
         return 1
     return 0
 
