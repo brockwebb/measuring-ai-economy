@@ -4,7 +4,9 @@
       "SECURITIES AND EXCHANGE COMMISSION"
     ],
     "document_number": "2026-09095",
-    "document_type": "Proposed Rule"
+    "document_type": "Proposed Rule",
+    "matched_terms": [],
+    "precision_match": false
   },
   "published_date": "2026-05-07",
   "rows": [
@@ -13,7 +15,7 @@
         "authors": "[]",
         "document_type": "Proposed Rule",
         "doi": null,
-        "payload": "{\"agencies\": [\"SECURITIES AND EXCHANGE COMMISSION\"], \"citation\": null, \"document_number\": \"2026-09095\"}",
+        "payload": "{\"agencies\": [\"SECURITIES AND EXCHANGE COMMISSION\"], \"citation\": null, \"document_number\": \"2026-09095\", \"matched_terms\": [], \"precision_match\": false}",
         "published_date": "2026-05-07",
         "raw_hash": "sha256:test",
         "source_id": "federal_register",

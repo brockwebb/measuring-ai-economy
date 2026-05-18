@@ -4,7 +4,9 @@
       "DEPARTMENT OF HEALTH AND HUMAN SERVICES"
     ],
     "document_number": "2026-09266",
-    "document_type": "Rule"
+    "document_type": "Rule",
+    "matched_terms": [],
+    "precision_match": false
   },
   "published_date": "2026-05-11",
   "rows": [
@@ -13,7 +15,7 @@
         "authors": "[]",
         "document_type": "Rule",
         "doi": null,
-        "payload": "{\"agencies\": [\"DEPARTMENT OF HEALTH AND HUMAN SERVICES\"], \"citation\": null, \"document_number\": \"2026-09266\"}",
+        "payload": "{\"agencies\": [\"DEPARTMENT OF HEALTH AND HUMAN SERVICES\"], \"citation\": null, \"document_number\": \"2026-09266\", \"matched_terms\": [], \"precision_match\": false}",
         "published_date": "2026-05-11",
         "raw_hash": "sha256:test",
         "source_id": "federal_register",

@@ -4,7 +4,9 @@
       "DEPARTMENT OF EDUCATION"
     ],
     "document_number": "2026-09203",
-    "document_type": "Notice"
+    "document_type": "Notice",
+    "matched_terms": [],
+    "precision_match": false
   },
   "published_date": "2026-05-08",
   "rows": [
@@ -13,7 +15,7 @@
         "authors": "[]",
         "document_type": "Notice",
         "doi": null,
-        "payload": "{\"agencies\": [\"DEPARTMENT OF EDUCATION\"], \"citation\": null, \"document_number\": \"2026-09203\"}",
+        "payload": "{\"agencies\": [\"DEPARTMENT OF EDUCATION\"], \"citation\": null, \"document_number\": \"2026-09203\", \"matched_terms\": [], \"precision_match\": false}",
         "published_date": "2026-05-08",
         "raw_hash": "sha256:test",
         "source_id": "federal_register",

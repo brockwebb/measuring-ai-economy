@@ -4,7 +4,9 @@
       "EXECUTIVE OFFICE OF THE PRESIDENT"
     ],
     "document_number": "2026-08010",
-    "document_type": "Presidential Document"
+    "document_type": "Presidential Document",
+    "matched_terms": [],
+    "precision_match": false
   },
   "published_date": "2026-04-23",
   "rows": [
@@ -13,7 +15,7 @@
         "authors": "[]",
         "document_type": "Presidential Document",
         "doi": null,
-        "payload": "{\"agencies\": [\"EXECUTIVE OFFICE OF THE PRESIDENT\"], \"citation\": null, \"document_number\": \"2026-08010\"}",
+        "payload": "{\"agencies\": [\"EXECUTIVE OFFICE OF THE PRESIDENT\"], \"citation\": null, \"document_number\": \"2026-08010\", \"matched_terms\": [], \"precision_match\": false}",
         "published_date": "2026-04-23",
         "raw_hash": "sha256:test",
         "source_id": "federal_register",
