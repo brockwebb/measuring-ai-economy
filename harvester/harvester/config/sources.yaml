@@ -75,6 +75,24 @@ arxiv:
     # Control / dynamics
     - "math.OC"
     - "stat.AP"
+    # Higher-order math / geometry / discrete / quantum (added 2026-06-05 per
+    # operator directive — the arxiv net was AI-tooling-only and ignored most
+    # research axes). Category union is ANDed with tier_1_terms, so these only
+    # admit papers a term below also matches: breadth with volume control.
+    - "math.DG"   # differential geometry
+    - "math.AG"   # algebraic geometry
+    - "math.GT"   # geometric topology
+    - "math.AT"   # algebraic topology
+    - "math.MG"   # metric geometry
+    - "math.CO"   # combinatorics (discrete)
+    - "math.DS"   # dynamical systems
+    - "math.PR"   # probability (stochastic-dynamics axis)
+    - "math-ph"   # mathematical physics
+    - "math.QA"   # quantum algebra
+    - "quant-ph"  # quantum physics / information / computing
+    - "cs.CG"     # computational geometry
+    - "cs.DM"     # discrete mathematics
+    - "nlin.CD"   # chaos / nonlinear dynamics (complexity axis)
   # Tier-1 keywords folded in from ~/.wintermute/sources/paper_keywords.yaml
   tier_1_terms:
     - "knowledge graph agent"
@@ -96,6 +114,27 @@ arxiv:
     - "OAEI ontology alignment evaluation"
     - "knowledge graph completion link prediction"
     - "belief revision knowledge base update AGM"
+    # Higher-order math / geometry / dimensions / quantum / discrete systems
+    # (added 2026-06-05). Maps to the stochastic_dynamics_info_geometry and
+    # complexity_computation_control research axes that the arxiv net had been
+    # ignoring. Each term gates which papers from the new categories above come in.
+    - "high dimensional geometry manifold"
+    - "manifold learning dimensionality reduction"
+    - "topological data analysis persistent homology"
+    - "information geometry statistical manifold"
+    - "stochastic differential equations diffusion process"
+    - "optimal transport Wasserstein geometry"
+    - "Riemannian optimization manifold"
+    - "high dimensional probability concentration"
+    - "random matrix theory spectral"
+    - "discrete differential geometry"
+    - "algebraic topology applied"
+    - "quantum information geometry"
+    - "quantum computing algorithm complexity"
+    - "combinatorial optimization discrete structures"
+    - "dynamical systems chaos bifurcation"
+    - "spectral graph theory Laplacian"
+    - "category theory compositional structure"
   tier_2_terms: []
 
 semantic_scholar:
