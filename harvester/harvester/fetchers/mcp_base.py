@@ -2,23 +2,26 @@
 
 Invokes Claude via subprocess with an explicit MCP tool call. Matches the
 pattern used by existing Wintermute scripts. Records (prompt_hash, mcp_tool,
-args) on request_params for stochastic provenance downstream.
+args, model_receipt) on request_params for stochastic provenance downstream.
+
+Model selection (seldon AD-035, MODEL-001): a subclass names a registry role in
+`model_role`; the call execs the lock's CLI with `--model <id>` and the lock's
+env block (harvester.model_launch), and a substituted model raises
+`seldon.models.ModelSubstituted` before any item is read. Before AD-035 this
+call passed no `--model` at all and ran whatever `claude` on PATH defaulted to.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
-import os
-import subprocess
 from abc import abstractmethod
 from typing import Any, Iterable
 
 from harvester.fetchers.base import Fetcher
+from harvester.manifest import RawArchive
+from harvester.model_launch import ResponseNotJson, launch_spec, receipt_for, run_cli
 from harvester.types import RawPayload
-
-
-_CLAUDE_BIN = os.environ.get("HARVESTER_CLAUDE_BIN", "claude")
 
 
 class McpFetcher(Fetcher):
@@ -31,11 +34,24 @@ class McpFetcher(Fetcher):
             interactive permission prompt. Defaults to [mcp_tool]; subclasses
             that orchestrate multiple tools (e.g. search then get_metadata)
             should override this.
+        model_role: The seldon registry role the call runs under (AD-035 R4).
+            Required: there is no default model, so a subclass without one is
+            refused at construction.
     """
 
     mcp_tool: str = ""
     allowed_tools: list[str] = []  # empty → derived from mcp_tool at call time
     subprocess_timeout: int = 120  # seconds; override for multi-step prompts
+    model_role: str = ""
+
+    def __init__(self, archive: RawArchive) -> None:
+        super().__init__(archive)
+        if not self.model_role:
+            raise ValueError(
+                f"{type(self).__name__}.model_role is empty; an MCP fetcher names a seldon "
+                f"registry role (AD-035 R4)")
+        # Resolved once: a run keeps the lock entry it started with (AD-035 R7).
+        self._spec = launch_spec(self.model_role)
 
     @abstractmethod
     def args_for_query(self, query: dict[str, Any]) -> dict[str, Any]: ...
@@ -56,23 +72,19 @@ class McpFetcher(Fetcher):
         prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
 
         tools = self.allowed_tools or ([self.mcp_tool] if self.mcp_tool else [])
-        cmd = [_CLAUDE_BIN, "-p", prompt, "--output-format", "json"]
+        cli_args = ["-p", prompt, "--output-format", "json"]
         if tools:
-            cmd += ["--allowedTools"] + tools
+            cli_args += ["--allowedTools"] + tools
 
-        proc = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=self.subprocess_timeout,
-        )
+        proc = run_cli(self._spec, cli_args, timeout=self.subprocess_timeout)
         if proc.returncode != 0:
             raise RuntimeError(f"MCP call failed (exit {proc.returncode}): {proc.stderr.strip()}")
 
         try:
-            response = json.loads(proc.stdout)
-        except json.JSONDecodeError as e:
-            raise RuntimeError(f"MCP response was not JSON: {e}; stdout: {proc.stdout[:200]}")
+            # Raises ModelSubstituted (AD-035 R6) before any item is read.
+            response, receipt = receipt_for(self._spec, proc.stdout)
+        except ResponseNotJson as e:
+            raise RuntimeError(f"MCP {e}") from e
 
         for item in self.items_from_response(response):
             source_url = item.get("url") or item.get("source_url") or ""
@@ -86,6 +98,7 @@ class McpFetcher(Fetcher):
                     "mcp_tool": self.mcp_tool,
                     "args": args,
                     "prompt_hash": prompt_hash,
+                    "model_receipt": receipt,
                 },
                 content=content,
                 content_type="application/json",

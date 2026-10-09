@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 import psycopg
+from seldon import models
 
 from harvester.db import get_connection, with_advisory_lock
 from harvester.discovery.scout import MuiScout
@@ -27,8 +28,12 @@ from harvester.improvement.failure_patterns import FailureClassifier
 from harvester.loader import Loader
 from harvester.manifest import RawArchive
 from harvester.normalizer import emit_markdown
-from harvester.triage.llm_triage import LlmTriage
+from harvester.triage.llm_triage import DEFAULT_TRIAGE_ROLE, LlmTriage
 from harvester.types import ParsedDoc
+
+#: The migration that adds `model_receipt` to harvest.triage_results (seldon AD-035 R6). A run with
+#: triage enabled refuses to start without it rather than losing every receipt to a failed INSERT.
+RECEIPT_MIGRATION = "012_model_receipts.sql"
 
 
 @dataclass
@@ -53,7 +58,8 @@ class RunnerConfig:
     output_circuit_breaker_window_hours: int = 24
     scout_base_url: str | None = None
     triage_enabled: bool = False
-    triage_model: str = "claude-sonnet-4-6"
+    # A seldon registry role, never a model id (AD-035 R4); the lock names the model.
+    triage_role: str = DEFAULT_TRIAGE_ROLE
     triage_axes_yaml: Path | None = None
     triage_threshold: float = 0.4
     citation_chain_enabled: bool = False
@@ -94,7 +100,7 @@ class Runner:
         self.triage: LlmTriage | None = None
         if config.triage_enabled and config.triage_axes_yaml is not None:
             self.triage = LlmTriage(
-                model_id=config.triage_model,
+                role=config.triage_role,
                 axes_yaml=config.triage_axes_yaml,
             )
 
@@ -125,6 +131,8 @@ class Runner:
                 )
 
             self._assert_schema_version(conn)
+            if self.triage is not None:
+                self._assert_receipt_migration(conn)
 
             if self.scout_base_url and not self._has_recent_discovery_notes(conn):
                 self._scout_and_persist(conn)
@@ -196,6 +204,12 @@ class Runner:
                         parsed.metadata["triage_reason"] = tr.reason
                         if tr.score < self.config.triage_threshold:
                             parsed.metadata["triage_below_threshold"] = True
+                    except models.ModelSubstituted as e:
+                        # AD-035 R6: the score came from a model nobody asked for. It is not
+                        # recorded or used; the refusal and its receipt travel with the document.
+                        conn.rollback()
+                        parsed.metadata["triage_error"] = str(e)
+                        parsed.metadata["triage_model_receipt"] = e.receipt
                     except Exception as e:
                         conn.rollback()  # clear any aborted txn from a failed _record_triage_result
                         parsed.metadata["triage_error"] = str(e)
@@ -278,6 +292,18 @@ class Runner:
             raise RuntimeError(
                 f"expected schema_version >= {self.config.expected_schema_version} not applied"
             )
+
+    def _assert_receipt_migration(self, conn: psycopg.Connection) -> None:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT 1 FROM harvest.schema_migrations WHERE filename = %s",
+                (RECEIPT_MIGRATION,),
+            )
+            if cur.fetchone() is None:
+                raise RuntimeError(
+                    f"triage is enabled but migration {RECEIPT_MIGRATION} is not applied; "
+                    f"run `harvester migrate` (served-model receipts, seldon AD-035 R6)"
+                )
 
     def _open_run_log(self, conn: psycopg.Connection, query: dict[str, Any]) -> int:
         with conn.cursor() as cur:
@@ -423,8 +449,9 @@ class Runner:
             cur.execute(
                 """
                 INSERT INTO harvest.triage_results
-                    (doc_id, score, axes, reason, rubric_version, model_id, prompt_hash)
-                VALUES (%s, %s, %s::jsonb, %s, %s, %s, %s)
+                    (doc_id, score, axes, reason, rubric_version, model_id, prompt_hash,
+                     model_receipt)
+                VALUES (%s, %s, %s::jsonb, %s, %s, %s, %s, %s::jsonb)
                 ON CONFLICT (doc_id) DO UPDATE
                 SET score = EXCLUDED.score,
                     axes = EXCLUDED.axes,
@@ -432,10 +459,12 @@ class Runner:
                     rubric_version = EXCLUDED.rubric_version,
                     model_id = EXCLUDED.model_id,
                     prompt_hash = EXCLUDED.prompt_hash,
+                    model_receipt = EXCLUDED.model_receipt,
                     scored_at = now()
                 """,
                 (doc_id, tr.score, json.dumps(tr.axes), tr.reason,
-                 tr.rubric_version, tr.model_id, tr.prompt_hash),
+                 tr.rubric_version, tr.model_id, tr.prompt_hash,
+                 json.dumps(tr.model_receipt)),
             )
         conn.commit()
 

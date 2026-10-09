@@ -61,7 +61,7 @@ arxiv:
   triage_enabled: true
   citation_chain_enabled: true   # arxiv papers seed citation chains
   triage_threshold: 0.4
-  triage_model: "claude-sonnet-4-6"
+  triage_role: triage             # seldon registry role (AD-035 R4); the lock names the model
   scout_base_url: "https://arxiv.org"
   categories:
     # Core AI / ML categories
@@ -151,7 +151,7 @@ semantic_scholar:
   expected_schema_version: 6
   triage_enabled: true
   triage_threshold: 0.4
-  triage_model: "claude-sonnet-4-6"
+  triage_role: triage             # seldon registry role (AD-035 R4); the lock names the model
   scout_base_url: "https://api.semanticscholar.org"
   citation_chain_enabled: false   # Standalone runs don't enqueue further citations
   tier_1_terms:
@@ -180,7 +180,7 @@ zenodo:
   triage_enabled: true
   citation_chain_enabled: true
   triage_threshold: 0.4
-  triage_model: "claude-sonnet-4-6"
+  triage_role: triage             # seldon registry role (AD-035 R4); the lock names the model
   scout_base_url: "https://zenodo.org"
   per_page: 25                # Zenodo's unauthenticated API caps at 25 per page (returns 400 above)
   max_pages: 4                # 25 * 4 = 100 max per term per run
@@ -222,7 +222,7 @@ url_drain:
   triage_enabled: true
   citation_chain_enabled: false
   triage_threshold: 0.4
-  triage_model: "claude-sonnet-4-6"
+  triage_role: triage             # seldon registry role (AD-035 R4); the lock names the model
 
 pubmed:
   fetcher: harvester.fetchers.pubmed.PubMedFetcher
@@ -240,7 +240,7 @@ pubmed:
   triage_enabled: true
   citation_chain_enabled: true
   triage_threshold: 0.4
-  triage_model: "claude-sonnet-4-6"
+  triage_role: triage             # seldon registry role (AD-035 R4); the lock names the model
   scout_base_url: "https://pubmed.ncbi.nlm.nih.gov"
   per_page: 5                 # 5 papers/term * 10 terms = 50/night max; matches PubMedFetcher._MAX_RESULTS_CAP
   max_pages: 1                # McpFetcher doesn't paginate; this is informational

@@ -1,10 +1,15 @@
-"""Tests for McpFetcher base (with subprocess mocked)."""
+"""Tests for McpFetcher base.
 
-import json
-from unittest.mock import patch, MagicMock
+MODEL-001 (seldon AD-035): these tests used to patch `subprocess.run` inside mcp_base. The base now
+requires a registry role and execs the lock's CLI through harvester.model_launch, so they run
+against `seldon_models_home` (a fixture lock and a fake CLI, tests/conftest.py).
+"""
+
+import subprocess
 
 import pytest
 
+from harvester import model_launch
 from harvester.fetchers.mcp_base import McpFetcher
 from harvester.manifest import RawArchive
 from harvester.types import RateLimit
@@ -13,6 +18,8 @@ from harvester.types import RateLimit
 class _FakeMcpFetcher(McpFetcher):
     source_id = "fake_mcp"
     mcp_tool = "mcp__test__search"
+    # Any registry role serves here: the fixture registry is a copy of seldon's.
+    model_role = "triage"
 
     def rate_limit_spec(self) -> RateLimit:
         return RateLimit(requests_per_second=1.0)
@@ -24,18 +31,13 @@ class _FakeMcpFetcher(McpFetcher):
         return response.get("results", [])
 
 
-@patch("harvester.fetchers.mcp_base.subprocess.run")
-def test_mcp_fetcher_yields_one_per_item(mock_run, tmp_path):
-    mock_run.return_value = MagicMock(
-        returncode=0,
-        stdout=json.dumps({
-            "results": [
-                {"url": "https://example.com/a", "title": "A"},
-                {"url": "https://example.com/b", "title": "B"},
-            ]
-        }),
-        stderr="",
-    )
+def test_mcp_fetcher_yields_one_per_item(seldon_models_home, tmp_path):
+    seldon_models_home.reply("", top={
+        "results": [
+            {"url": "https://example.com/a", "title": "A"},
+            {"url": "https://example.com/b", "title": "B"},
+        ]
+    })
     archive = RawArchive(root=tmp_path / "raw", manifest_path=tmp_path / "m.parquet")
     fetcher = _FakeMcpFetcher(archive=archive)
     payloads = list(fetcher.iter_payloads({"q": "ai"}))
@@ -44,18 +46,13 @@ def test_mcp_fetcher_yields_one_per_item(mock_run, tmp_path):
     assert all(p.content_type == "application/json" for p in payloads)
 
 
-@patch("harvester.fetchers.mcp_base.subprocess.run")
-def test_mcp_fetcher_respects_seen(mock_run, tmp_path):
-    mock_run.return_value = MagicMock(
-        returncode=0,
-        stdout=json.dumps({
-            "results": [
-                {"url": "https://example.com/a"},
-                {"url": "https://example.com/b"},
-            ]
-        }),
-        stderr="",
-    )
+def test_mcp_fetcher_respects_seen(seldon_models_home, tmp_path):
+    seldon_models_home.reply("", top={
+        "results": [
+            {"url": "https://example.com/a"},
+            {"url": "https://example.com/b"},
+        ]
+    })
     archive = RawArchive(root=tmp_path / "raw", manifest_path=tmp_path / "m.parquet")
     fetcher = _FakeMcpFetcher(archive=archive)
     payloads = list(fetcher.iter_payloads({"q": "ai"}, seen={"https://example.com/a"}))
@@ -64,9 +61,10 @@ def test_mcp_fetcher_respects_seen(mock_run, tmp_path):
     assert payloads[0].source_url == "https://example.com/b"
 
 
-@patch("harvester.fetchers.mcp_base.subprocess.run")
-def test_mcp_fetcher_raises_on_nonzero_exit(mock_run, tmp_path):
-    mock_run.return_value = MagicMock(returncode=1, stdout="", stderr="oh no")
+def test_mcp_fetcher_raises_on_nonzero_exit(seldon_models_home, tmp_path, monkeypatch):
+    def failing(cmd, **kw):
+        return subprocess.CompletedProcess(cmd, 1, stdout="", stderr="oh no")
+    monkeypatch.setattr(model_launch.subprocess, "run", failing)
     archive = RawArchive(root=tmp_path / "raw", manifest_path=tmp_path / "m.parquet")
     fetcher = _FakeMcpFetcher(archive=archive)
     with pytest.raises(RuntimeError, match="MCP call failed"):

@@ -16,12 +16,24 @@ import yaml
 from harvester.db import get_connection
 from harvester.discovery.scout import MuiScout
 from harvester.manifest import RawArchive
+from harvester.model_launch import config_role
 from harvester.runner import Runner, RunnerConfig
+from harvester.triage.llm_triage import DEFAULT_TRIAGE_ROLE
 
 app = typer.Typer(help="Harvester CLI for the AI economy measurement project.")
 
 SCHEMAS_DIR = Path(__file__).parent / "schemas"
 CONFIG_PATH = Path(__file__).parent / "config" / "sources.yaml"
+
+
+def _triage_role(cfg: dict) -> str:
+    """The seldon registry role a source block's triage runs under (AD-035 R4).
+
+    A block still carrying the pre-AD-035 `triage_model` key, or naming a model as its role, is
+    refused (harvester.model_launch.ConfigNamesModel): it is never read as a model.
+    """
+    return config_role(cfg, role_key="triage_role", legacy_key="triage_model",
+                       default=DEFAULT_TRIAGE_ROLE)
 
 
 def _exit_code_for_status(status: str) -> int:
@@ -233,7 +245,7 @@ def run(
         expected_schema_version=int(cfg.get("expected_schema_version", 2)),
         scout_base_url=cfg.get("scout_base_url"),
         triage_enabled=bool(cfg.get("triage_enabled", False)),
-        triage_model=str(cfg.get("triage_model", "claude-sonnet-4-6")),
+        triage_role=_triage_role(cfg),
         triage_axes_yaml=(Path(__file__).parent / "triage" / "research_axes.yaml")
             if cfg.get("triage_enabled") else None,
         triage_threshold=float(cfg.get("triage_threshold", 0.4)),
@@ -448,6 +460,10 @@ def expand_citations_cmd(
     max_batch: int = typer.Option(100, "--max-batch", help="Max proposed candidates to process"),
     threshold: float = typer.Option(0.4, "--threshold", help="Triage score promotion cutoff"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Print pending candidates without API calls"),
+    triage_role: str = typer.Option(
+        DEFAULT_TRIAGE_ROLE, "--triage-role",
+        help="seldon registry role the triage calls run under (AD-035); the lock names the model",
+    ),
 ) -> None:
     """Drive CitationChain.process_pending — verify pending candidates via
     Semantic Scholar + LlmTriage, promote to approved/rejected."""
@@ -477,7 +493,7 @@ def expand_citations_cmd(
         )
         ss_fetcher = SemanticScholarFetcher(archive=archive)
         triage = LlmTriage(
-            model_id="claude-sonnet-4-6",
+            role=triage_role,
             axes_yaml=Path(__file__).parent / "triage" / "research_axes.yaml",
         )
 
@@ -615,7 +631,7 @@ def drain_url_cmd(
         expected_schema_version=int(cfg.get("expected_schema_version", 9)),
         scout_base_url=cfg.get("scout_base_url"),
         triage_enabled=bool(cfg.get("triage_enabled", True)),
-        triage_model=str(cfg.get("triage_model", "claude-sonnet-4-6")),
+        triage_role=_triage_role(cfg),
         triage_axes_yaml=(Path(__file__).parent / "triage" / "research_axes.yaml")
             if cfg.get("triage_enabled") else None,
         triage_threshold=float(cfg.get("triage_threshold", 0.4)),

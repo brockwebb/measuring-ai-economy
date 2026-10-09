@@ -19,6 +19,7 @@ from __future__ import annotations
 import json
 
 import psycopg
+from seldon import models
 
 from harvester.types import ParsedDoc
 
@@ -133,7 +134,21 @@ class CitationChain:
                     rows=[],
                     metadata={"abstract": abstract},
                 )
-                tr = triage.score(parsed)
+                try:
+                    tr = triage.score(parsed)
+                except models.ModelSubstituted as e:
+                    # AD-035 R6: the score is not used. The candidate stays 'proposed' for
+                    # retry, and the refused receipt is recorded so the substitution is visible.
+                    self._conn.rollback()
+                    with self._conn.cursor() as cur:
+                        cur.execute(
+                            "UPDATE harvest.expansion_candidates SET model_receipt = %s::jsonb "
+                            "WHERE id = %s",
+                            (json.dumps(e.receipt), candidate_id),
+                        )
+                    self._conn.commit()
+                    deferred += 1
+                    continue
 
                 # 3. Promote or reject
                 new_status = "approved" if tr.score >= threshold else "rejected"
@@ -144,10 +159,12 @@ class CitationChain:
                         SET status = %s,
                             score = %s,
                             reviewed_at = now(),
-                            reviewed_by = %s
+                            reviewed_by = %s,
+                            model_receipt = %s::jsonb
                         WHERE id = %s
                         """,
-                        (new_status, tr.score, f"citation_chain:{tr.model_id}", candidate_id),
+                        (new_status, tr.score, f"citation_chain:{tr.model_id}",
+                         json.dumps(tr.model_receipt), candidate_id),
                     )
                 self._conn.commit()
 
