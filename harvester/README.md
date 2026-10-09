@@ -15,7 +15,8 @@ The second line installs seldon (editable, no dependencies, no network) so the h
 the machine's model registry and lock through `seldon.models` (seldon AD-035, MODEL-001). Triage
 and the MCP fetcher name a registry ROLE (`triage_role: triage` in `sources.yaml`); the lock in
 `/Users/brock/GitHub/seldon/models/models.lock.yaml` names the model id and the Claude CLI they
-exec, and every call records a served-model receipt (`model_receipt`, migration 012). A config
+exec, and every call passes the role's declared `--effort` (seldon AD-036-R8) and records a
+served-model receipt, effort included (`model_receipt`, migration 012). A config
 that names a model id or carries the old `triage_model` key is refused.
 
 seldon is not in `pyproject.toml`: it is a local checkout, and declaring it would make `uv lock`
@@ -34,5 +35,11 @@ uv run harvester run federal_register --query="artificial intelligence" --limit=
 ```bash
 uv run pytest
 ```
+
+A test never spends unasked (seldon AD-036-R9). A test that can reach a real model launcher
+without a fake carries `@pytest.mark.live_model` (tests/conftest.py) and is skipped unless
+`LIVE_MODEL_CALLS=1` is set. `tests/test_no_model_calls_by_default.py` runs the suite with a
+recording `claude` shim first on PATH and as the lock's CLI, and fails if the default run invokes
+it even once.
 
 See `docs/superpowers/specs/2026-05-11-harvester-design.md` for design.

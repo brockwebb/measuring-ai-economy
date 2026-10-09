@@ -1,8 +1,9 @@
-"""Shared pytest fixtures."""
+"""Shared pytest fixtures, and the live-model-call gate (seldon AD-036-R9)."""
 
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -11,6 +12,31 @@ import pytest
 import yaml
 
 from seldon import models
+
+
+#: AD-036-R9, "a test never spends unasked": a test that can reach a real model launcher (the
+#: lock's CLI, `claude` on PATH, an Anthropic API client) without a fake carries
+#: `@pytest.mark.live_model` and runs only when this variable is exactly "1". The marker is the one
+#: gate in this suite; `pytest_collection_modifyitems` below applies it, and
+#: tests/test_no_model_calls_by_default.py proves the default run makes zero `claude` calls.
+LIVE_MODEL_CALLS_ENV = "LIVE_MODEL_CALLS"
+LIVE_MODEL_SKIP_REASON = (
+    f"calls a real model; set {LIVE_MODEL_CALLS_ENV}=1 to run (seldon AD-036-R9)")
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", f"live_model: reaches a real model launcher; runs only with "
+                   f"{LIVE_MODEL_CALLS_ENV}=1 (seldon AD-036-R9)")
+
+
+def pytest_collection_modifyitems(config, items):
+    if os.environ.get(LIVE_MODEL_CALLS_ENV) == "1":
+        return
+    skip = pytest.mark.skip(reason=LIVE_MODEL_SKIP_REASON)
+    for item in items:
+        if "live_model" in item.keywords:
+            item.add_marker(skip)
 
 
 #: Fixture lock ids. Deliberately NOT the live lock's ids: a test that passes only because the live
@@ -89,14 +115,29 @@ class FakeCli:
         return [json.loads(line) for line in log.read_text().splitlines() if line.strip()]
 
 
+def write_models_home(home: Path, cli_path: Path) -> None:
+    """Write a seldon models home at `home`: a copy of seldon's registry and a fixture lock (ids
+    from FIXTURE_IDS) whose `cli.path` is `cli_path`. Point `SELDON_MODELS_HOME` at it."""
+    home.mkdir(parents=True, exist_ok=True)
+    source = Path(models.__file__).resolve().parent.parent / "models" / models.REGISTRY_FILE
+    shutil.copy(source, home / models.REGISTRY_FILE)
+    lock = {
+        "schema": 1,
+        "resolved_on": "2026-10-09",
+        "resolved_at": "2026-10-09T00:00:00Z",
+        "cli": {"version": FIXTURE_CLI_VERSION, "path": str(cli_path),
+                "npm_package": "@anthropic-ai/claude-code"},
+        "families": {fam: {"alias": fam, "model": mid} for fam, mid in FIXTURE_IDS.items()},
+        "evidence": "fixture",
+    }
+    (home / models.LOCK_FILE).write_text(yaml.safe_dump(lock, sort_keys=False))
+
+
 @pytest.fixture
 def seldon_models_home(tmp_path, monkeypatch) -> FakeCli:
     """`SELDON_MODELS_HOME` pointed at a tmp dir: a copy of seldon's registry and a fixture lock
     whose `cli.path` is the fake CLI. No test reads the live lock or execs a real CLI."""
     home = tmp_path / "seldon_models"
-    home.mkdir()
-    source = Path(models.__file__).resolve().parent.parent / "models" / models.REGISTRY_FILE
-    shutil.copy(source, home / models.REGISTRY_FILE)
 
     cli_root = tmp_path / "fake_cli"
     cli_root.mkdir()
@@ -107,15 +148,6 @@ def seldon_models_home(tmp_path, monkeypatch) -> FakeCli:
                                          side=FIXTURE_IDS["haiku"]))
     cli.path.chmod(0o755)
 
-    lock = {
-        "schema": 1,
-        "resolved_on": "2026-10-09",
-        "resolved_at": "2026-10-09T00:00:00Z",
-        "cli": {"version": FIXTURE_CLI_VERSION, "path": str(cli.path),
-                "npm_package": "@anthropic-ai/claude-code"},
-        "families": {fam: {"alias": fam, "model": mid} for fam, mid in FIXTURE_IDS.items()},
-        "evidence": "fixture",
-    }
-    (home / models.LOCK_FILE).write_text(yaml.safe_dump(lock, sort_keys=False))
+    write_models_home(home, cli.path)
     monkeypatch.setenv(models.MODELS_HOME_ENV, str(home))
     return cli
