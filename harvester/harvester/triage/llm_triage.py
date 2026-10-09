@@ -6,8 +6,9 @@ Migrated from ~/.wintermute/tools/arxiv_llm_triage.py with two changes:
 
 Model selection (seldon AD-035, MODEL-001): the scorer is built with a registry ROLE, never a model
 id. The role resolves through `seldon.models` to the lock's id and CLI once, at construction, and
-every call execs that CLI with `--model <id>` and the lock's env block (harvester.model_launch).
-Each result carries the served-model receipt; a substituted model raises
+every call execs that CLI with `--model <id>`, the role's declared `--effort` (seldon AD-036-R8)
+and the lock's env block (harvester.model_launch). Each result carries the served-model receipt,
+effort included; a substituted model raises
 `seldon.models.ModelSubstituted` and the score is not returned.
 
 The runner is responsible for persisting the result to harvest.triage_results.
@@ -42,7 +43,8 @@ class TriageResult:
     rubric_version: str
     model_id: str
     prompt_hash: str
-    #: AD-035 R6: {requested, served, side_models, ok} for the call that produced this score.
+    #: AD-035 R6: {requested, served, side_models, ok, effort} for the call that produced this
+    #: score; `effort` is the level the launch passed (AD-036-R8).
     model_receipt: dict
 
 

@@ -54,11 +54,15 @@ def test_triage_execs_lock_cli_with_lock_model_settings_and_env(seldon_models_ho
     assert _flag(argv, "--model") == FIXTURE_IDS["sonnet"]
     assert json.loads(_flag(argv, "--settings")) == SETTINGS
     assert _flag(argv, "--output-format") == "json"
+    # AD-036-R8: the role's declared effort, on the flag and in the env the CLI's background
+    # calls read.
+    assert _flag(argv, "--effort") == cli.effort("triage")
     assert call["env"] == {
         "ANTHROPIC_DEFAULT_OPUS_MODEL": FIXTURE_IDS["opus"],
         "ANTHROPIC_DEFAULT_SONNET_MODEL": FIXTURE_IDS["sonnet"],
         "ANTHROPIC_DEFAULT_HAIKU_MODEL": FIXTURE_IDS["haiku"],
         "ANTHROPIC_DEFAULT_FABLE_MODEL": FIXTURE_IDS["fable"],
+        models.EFFORT_ENV: cli.effort("triage"),
     }
 
 
@@ -71,6 +75,7 @@ def test_triage_records_receipt_naming_served_and_side_models(seldon_models_home
         "served": FIXTURE_IDS["sonnet"],
         "side_models": [FIXTURE_IDS["haiku"]],
         "ok": True,
+        "effort": seldon_models_home.effort("triage"),
     }
     assert result.score == pytest.approx(0.7)
 
@@ -95,6 +100,29 @@ def test_triage_substituted_model_stops_the_unit(seldon_models_home):
     assert exc.value.receipt["requested"] == FIXTURE_IDS["sonnet"]
     assert exc.value.receipt["served"] == "claude-sonnet-1-0"
     assert exc.value.receipt["ok"] is False
+    assert exc.value.receipt["effort"] == seldon_models_home.effort("triage")
+
+
+@pytest.mark.parametrize("strip", ["effort", "args", "env"])
+def test_seldon_without_declared_effort_is_refused(seldon_models_home, monkeypatch, strip):
+    """seldon is an unpinned editable install; a checkout older than AD-036-R8 returns a spec with
+    no effort, and its launches would run at the served model's own default unrecorded."""
+    real = models.launch_spec
+
+    def old_seldon(role):
+        spec = real(role)
+        if strip == "effort":
+            spec["effort"] = None
+        elif strip == "args":
+            spec["args"] = spec["args"][:-2]
+        else:
+            spec["env"].pop(models.EFFORT_ENV)
+        return spec
+
+    monkeypatch.setattr(models, "launch_spec", old_seldon)
+    with pytest.raises(models.ModelsError, match="AD-036-R8"):
+        LlmTriage(role="triage", axes_yaml=AXES_PATH)
+    assert seldon_models_home.calls() == []
 
 
 def test_triage_envelope_without_model_usage_is_refused(seldon_models_home, monkeypatch):
@@ -183,9 +211,12 @@ def test_mcp_fetcher_launches_from_the_lock(seldon_models_home, tmp_path):
     assert _flag(argv, "--model") == FIXTURE_IDS["sonnet"]
     assert json.loads(_flag(argv, "--settings")) == SETTINGS
     assert _flag(argv, "--allowedTools") == "mcp__test__search"
+    assert _flag(argv, "--effort") == cli.effort("triage")
     assert call["env"]["ANTHROPIC_DEFAULT_SONNET_MODEL"] == FIXTURE_IDS["sonnet"]
-    assert len(call["env"]) == 4 and all(call["env"].values())
+    assert call["env"][models.EFFORT_ENV] == cli.effort("triage")
+    assert len(call["env"]) == 5 and all(call["env"].values())
     assert payload.request_params["model_receipt"]["served"] == FIXTURE_IDS["sonnet"]
+    assert payload.request_params["model_receipt"]["effort"] == cli.effort("triage")
 
 
 def test_mcp_fetcher_substitution_stops_the_call(seldon_models_home, tmp_path):

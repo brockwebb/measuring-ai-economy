@@ -5,8 +5,9 @@ pattern used by existing Wintermute scripts. Records (prompt_hash, mcp_tool,
 args, model_receipt) on request_params for stochastic provenance downstream.
 
 Model selection (seldon AD-035, MODEL-001): a subclass names a registry role in
-`model_role`; the call execs the lock's CLI with `--model <id>` and the lock's
-env block (harvester.model_launch), and a substituted model raises
+`model_role`; the call execs the lock's CLI with `--model <id>`, the role's
+declared `--effort` (seldon AD-036-R8) and the lock's env block
+(harvester.model_launch), and a substituted model raises
 `seldon.models.ModelSubstituted` before any item is read. Before AD-035 this
 call passed no `--model` at all and ran whatever `claude` on PATH defaulted to.
 """
