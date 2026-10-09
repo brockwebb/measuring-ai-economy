@@ -23,7 +23,8 @@ FIXTURE_IDS = {
 }
 FIXTURE_CLI_VERSION = "9.9.999"
 
-#: The fake `claude`: records its argv and the four ANTHROPIC_DEFAULT_*_MODEL variables, then
+#: The fake `claude`: records its argv, the four ANTHROPIC_DEFAULT_*_MODEL variables and
+#: CLAUDE_CODE_EFFORT_LEVEL (seldon AD-036-R8), then
 #: prints one `--output-format json` envelope. It serves the `--model` it was asked for unless
 #: `served.txt` beside it names another id, which is how a test plants a substitution. The reply
 #: text is `reply.txt` beside it; `top.json`, when present, is merged into the envelope's top level
@@ -76,6 +77,11 @@ class FakeCli:
         """Make the next calls report `model_id` as the answering model (a substitution)."""
         (self.root / "served.txt").write_text(model_id)
 
+    def effort(self, role: str) -> str:
+        """The effort level the fixture registry (a copy of seldon's) declares for `role`."""
+        registry = yaml.safe_load((self.home / models.REGISTRY_FILE).read_text())
+        return registry["roles"][role]["effort"]
+
     def calls(self) -> list[dict]:
         log = self.root / "calls.jsonl"
         if not log.exists():
@@ -96,7 +102,8 @@ def seldon_models_home(tmp_path, monkeypatch) -> FakeCli:
     cli_root.mkdir()
     cli = FakeCli(cli_root, home)
     cli.path.write_text(_FAKE_CLI.format(python=sys.executable,
-                                         env_keys=sorted(models.FAMILY_ENV.values()),
+                                         env_keys=[*sorted(models.FAMILY_ENV.values()),
+                                                   models.EFFORT_ENV],
                                          side=FIXTURE_IDS["haiku"]))
     cli.path.chmod(0o755)
 
