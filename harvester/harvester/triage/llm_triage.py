@@ -4,6 +4,12 @@ Migrated from ~/.wintermute/tools/arxiv_llm_triage.py with two changes:
 1. Uses Claude via subprocess instead of GPT via OpenAI HTTP API.
 2. Returns structured TriageResult instead of mutating frontmatter.
 
+Model selection (seldon AD-035, MODEL-001): the scorer is built with a registry ROLE, never a model
+id. The role resolves through `seldon.models` to the lock's id and CLI once, at construction, and
+every call execs that CLI with `--model <id>` and the lock's env block (harvester.model_launch).
+Each result carries the served-model receipt; a substituted model raises
+`seldon.models.ModelSubstituted` and the score is not returned.
+
 The runner is responsible for persisting the result to harvest.triage_results.
 """
 
@@ -11,18 +17,21 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
-import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
 
+from harvester.model_launch import ResponseNotJson, launch_spec, receipt_for, run_cli
 from harvester.triage.prompts import build_triage_prompt
 from harvester.types import ParsedDoc
 
 
-_CLAUDE_BIN = os.environ.get("HARVESTER_CLAUDE_BIN", "claude")
+#: The registry role triage runs under when a config names none (seldon models/registry.yaml
+#: `triage`, created for this harvester). A role, not a model id (AD-035 R4).
+DEFAULT_TRIAGE_ROLE = "triage"
+#: Seconds one triage CLI call may take before it is abandoned.
+TRIAGE_TIMEOUT_S = 120
 
 
 @dataclass(frozen=True)
@@ -33,11 +42,14 @@ class TriageResult:
     rubric_version: str
     model_id: str
     prompt_hash: str
+    #: AD-035 R6: {requested, served, side_models, ok} for the call that produced this score.
+    model_receipt: dict
 
 
 class LlmTriage:
-    def __init__(self, *, model_id: str, axes_yaml: Path) -> None:
-        self._model_id = model_id
+    def __init__(self, *, role: str, axes_yaml: Path) -> None:
+        self._role = role
+        self._spec = launch_spec(role)
         self._axes_yaml_path = axes_yaml
         self._axes_yaml_text = axes_yaml.read_text()
         loaded = yaml.safe_load(self._axes_yaml_text) or {}
@@ -53,20 +65,16 @@ class LlmTriage:
         )
         prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
 
-        proc = subprocess.run(
-            [_CLAUDE_BIN, "-p", prompt, "--output-format", "json",
-             "--model", self._model_id],
-            capture_output=True,
-            text=True,
-            timeout=120,
-        )
+        proc = run_cli(self._spec, ["-p", prompt, "--output-format", "json"],
+                       timeout=TRIAGE_TIMEOUT_S)
         if proc.returncode != 0:
             raise RuntimeError(f"triage call failed (exit {proc.returncode}): {proc.stderr.strip()}")
 
         try:
-            response = json.loads(proc.stdout)
-        except json.JSONDecodeError as e:
-            raise RuntimeError(f"triage response not JSON: {e}; stdout: {proc.stdout[:200]}")
+            # Raises ModelSubstituted (AD-035 R6) before any of the reply is read.
+            response, receipt = receipt_for(self._spec, proc.stdout)
+        except ResponseNotJson as e:
+            raise RuntimeError(f"triage {e}") from e
 
         # Claude CLI wraps tool output; the actual structured response may be
         # nested under "result" or "content". Try common shapes.
@@ -100,6 +108,7 @@ class LlmTriage:
             axes=axes,
             reason=reason,
             rubric_version=self._rubric_version,
-            model_id=self._model_id,
+            model_id=receipt["served"],
             prompt_hash=prompt_hash,
+            model_receipt=receipt,
         )

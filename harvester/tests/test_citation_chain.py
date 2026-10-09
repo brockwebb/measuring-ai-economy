@@ -1,14 +1,24 @@
-"""Tests for CitationChain (enqueue + process_pending)."""
+"""Tests for CitationChain (enqueue + process_pending).
+
+MODEL-001 (seldon AD-035): the mocked triage results used to pin `model_id="claude-sonnet-4-6"`.
+A TriageResult now carries the served-model receipt, which process_pending records, so the mocks
+name the fixture lock's id (tests/conftest.py) and carry a receipt.
+"""
 
 import json
 from unittest.mock import MagicMock, patch
 
 import pytest
+from seldon import models
 
 from harvester.db import get_connection
 from harvester.improvement.citation_chain import CitationChain
 from harvester.types import ParsedDoc, Row
 from datetime import date
+from tests.conftest import FIXTURE_IDS
+
+RECEIPT = {"requested": FIXTURE_IDS["sonnet"], "served": FIXTURE_IDS["sonnet"],
+           "side_models": [], "ok": True}
 
 
 @pytest.fixture
@@ -170,7 +180,8 @@ def test_process_pending_promotes_high_score_candidate(clean_candidates):
         mock_triage_result = MagicMock(score=0.72, axes={"x": 0.72},
                                        reason="relevant",
                                        rubric_version="0.3.0",
-                                       model_id="claude-sonnet-4-6",
+                                       model_id=FIXTURE_IDS["sonnet"],
+                                       model_receipt=RECEIPT,
                                        prompt_hash="a"*64)
         mock_triage.score.return_value = mock_triage_result
 
@@ -222,7 +233,8 @@ def test_process_pending_rejects_low_score(clean_candidates):
         mock_triage_result = MagicMock(score=0.05, axes={},
                                        reason="off-axis",
                                        rubric_version="0.3.0",
-                                       model_id="claude-sonnet-4-6",
+                                       model_id=FIXTURE_IDS["sonnet"],
+                                       model_receipt=RECEIPT,
                                        prompt_hash="b"*64)
         mock_triage.score.return_value = mock_triage_result
 
@@ -325,7 +337,8 @@ def test_process_pending_defers_on_triage_timeout(clean_candidates):
         mock_triage = MagicMock()
         good_result = MagicMock()
         good_result.score = 0.9
-        good_result.model_id = "claude-sonnet-4-6"
+        good_result.model_id = FIXTURE_IDS["sonnet"]
+        good_result.model_receipt = RECEIPT
         mock_triage.score.side_effect = [
             subprocess.TimeoutExpired(cmd=["claude"], timeout=120),
             good_result,
@@ -354,5 +367,47 @@ def test_process_pending_defers_on_triage_timeout(clean_candidates):
         assert rows[dois[0]] == "proposed"
         # Second DOI: triage succeeded → promoted to approved
         assert rows[dois[1]] == "approved"
+    finally:
+        conn.close()
+
+
+def test_process_pending_defers_and_records_a_substituted_model(clean_candidates):
+    """AD-035 R6: a served model that is not the requested one stops the unit. The candidate
+    stays 'proposed' with no score, and the refused receipt is recorded on the row."""
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO harvest.expansion_candidates
+                    (kind, payload, depth, status)
+                VALUES ('paper', %s::jsonb, 1, 'proposed')
+                """,
+                (json.dumps({"doi": "10.9999/cc_test.subst", "origin": "citation_chain_test"}),),
+            )
+        conn.commit()
+
+        mock_ss = MagicMock()
+        mock_ss.get_paper.return_value = {"paperId": "ssid", "title": "T", "abstract": "a"}
+        refused = {"requested": FIXTURE_IDS["sonnet"], "served": "claude-sonnet-1-0",
+                   "side_models": [], "ok": False}
+        mock_triage = MagicMock()
+        mock_triage.score.side_effect = models.ModelSubstituted(refused)
+
+        result = CitationChain(conn).process_pending(
+            max_batch=10, ss_fetcher=mock_ss, triage=mock_triage, threshold=0.4,
+        )
+        assert result["deferred"] >= 1
+        assert result["approved"] == 0 and result["rejected"] == 0
+
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT status, score, model_receipt FROM harvest.expansion_candidates "
+                "WHERE payload->>'doi' = '10.9999/cc_test.subst'"
+            )
+            status, score, receipt = cur.fetchone()
+        assert status == "proposed"
+        assert score is None
+        assert receipt == refused
     finally:
         conn.close()
